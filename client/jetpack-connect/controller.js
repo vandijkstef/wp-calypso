@@ -265,7 +265,6 @@ export function plansLanding( context, next ) {
 			context={ context }
 			destinationType={ context.params.destinationType }
 			interval={ context.params.interval }
-			basePlansPath={ '/jetpack/connect/store' }
 			url={ context.query.site }
 		/>
 	);
