@@ -9,7 +9,13 @@ import deepFreeze from 'deep-freeze';
 /**
  * Internal dependencies
  */
-import reducer, { items as unwrappedItems, requestingAll, requesting, deleting } from '../reducer';
+import reducer, {
+	items as unwrappedItems,
+	requestingAll,
+	requesting,
+	deleting,
+	hasAllSitesList,
+} from '../reducer';
 import {
 	MEDIA_DELETE,
 	SITE_DELETE,
@@ -58,6 +64,7 @@ describe( 'reducer', () => {
 			'requesting',
 			'sharingButtons',
 			'blogStickers',
+			'hasAllSitesList',
 		] );
 	} );
 
@@ -94,10 +101,10 @@ describe( 'reducer', () => {
 	} );
 
 	describe( '#items()', () => {
-		test( 'should default to an empty object', () => {
+		test( 'should default to null', () => {
 			const state = items( undefined, {} );
 
-			expect( state ).to.eql( {} );
+			expect( state ).to.be.null;
 		} );
 
 		test( 'can receive all sites', () => {
@@ -607,7 +614,7 @@ describe( 'reducer', () => {
 			} );
 			const state = items( original, { type: DESERIALIZE } );
 
-			expect( state ).to.eql( {} );
+			expect( state ).to.be.null;
 		} );
 	} );
 
@@ -740,6 +747,30 @@ describe( 'reducer', () => {
 				2916284: false,
 				77203074: false,
 			} );
+		} );
+	} );
+
+	describe( 'hasAllSitesList()', () => {
+		test( 'should default false', () => {
+			const state = hasAllSitesList( undefined, {} );
+
+			expect( state ).to.be.false;
+		} );
+
+		test( 'should update on receiving all sites', () => {
+			const state = hasAllSitesList( undefined, {
+				type: SITES_RECEIVE,
+			} );
+
+			expect( state ).to.be.true;
+		} );
+
+		test( 'should not update on receiving a single site', () => {
+			const state = hasAllSitesList( false, {
+				type: SITE_RECEIVE,
+			} );
+
+			expect( state ).to.be.false;
 		} );
 	} );
 } );

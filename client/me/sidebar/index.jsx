@@ -1,5 +1,4 @@
 /** @format */
-
 /**
  * External dependencies
  */
@@ -14,7 +13,7 @@ import { localize } from 'i18n-calypso';
 import Button from 'components/button';
 import config from 'config';
 import ProfileGravatar from 'me/profile-gravatar';
-import purchasesPaths from 'me/purchases/paths';
+import { addCreditCard, billingHistory, purchasesRoot } from 'me/purchases/paths';
 import Sidebar from 'layout/sidebar';
 import SidebarFooter from 'layout/sidebar/footer';
 import SidebarHeading from 'layout/sidebar/heading';
@@ -43,20 +42,22 @@ class MeSidebar extends React.Component {
 
 		// If user is using en locale, redirect to app promo page on sign out
 		const isEnLocale = currentUser && currentUser.localeSlug === 'en';
-		let redirect = null;
+
+		let redirectTo = null;
+
 		if ( isEnLocale && ! config.isEnabled( 'desktop' ) ) {
-			redirect = '/?apppromo';
+			redirectTo = '/?apppromo';
 		}
 
 		if ( config.isEnabled( 'login/wp-login' ) ) {
-			this.props.logoutUser( redirect ).then(
+			this.props.logoutUser( redirectTo ).then(
 				( { redirect_to } ) => user.clear( () => ( location.href = redirect_to || '/' ) ),
 				// The logout endpoint might fail if the nonce has expired.
 				// In this case, redirect to wp-login.php?action=logout to get a new nonce generated
-				() => userUtilities.logout( redirect )
+				() => userUtilities.logout( redirectTo )
 			);
 		} else {
-			userUtilities.logout( redirect );
+			userUtilities.logout( redirectTo );
 		}
 
 		this.props.recordGoogleEvent( 'Me', 'Clicked on Sidebar Sign Out Link' );
@@ -90,9 +91,9 @@ class MeSidebar extends React.Component {
 			'/me/notifications/updates': 'notifications',
 			'/me/notifications/subscriptions': 'notifications',
 			'/help/contact': 'help',
-			[ purchasesPaths.purchasesRoot() ]: 'purchases',
-			[ purchasesPaths.billingHistory() ]: 'purchases',
-			[ purchasesPaths.addCreditCard() ]: 'purchases',
+			[ purchasesRoot ]: 'purchases',
+			[ billingHistory ]: 'purchases',
+			[ addCreditCard ]: 'purchases',
 			'/me/chat': 'happychat',
 		};
 		const filteredPath = context.path.replace( /\/\d+$/, '' ); // Remove ID from end of path
@@ -149,7 +150,7 @@ class MeSidebar extends React.Component {
 
 						<SidebarItem
 							selected={ selected === 'purchases' }
-							link={ purchasesPaths.purchasesRoot() }
+							link={ purchasesRoot }
 							label={ translate( 'Manage Purchases' ) }
 							icon="credit-card"
 							onNavigate={ this.onNavigate }

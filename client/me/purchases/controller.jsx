@@ -4,7 +4,7 @@
  * External dependencies
  */
 
-import { partial } from 'lodash';
+import { noop, partial } from 'lodash';
 import React from 'react';
 
 /**
@@ -19,13 +19,14 @@ import EditCardDetails from './payment/edit-card-details';
 import Main from 'components/main';
 import ManagePurchase from './manage-purchase';
 import NoSitesMessage from 'components/empty-content/no-sites-message';
-import paths from './paths';
+import * as paths from './paths';
 import PurchasesHeader from './purchases-list/header';
 import PurchasesList from './purchases-list';
 import { concatTitle, recordPageView } from 'lib/react-helpers';
 import { setDocumentHeadTitle } from 'state/document-head/actions';
 import titles from './titles';
 import userFactory from 'lib/user';
+import { makeLayout, render as clientRender } from 'controller';
 
 const recordPurchasesPageView = partial( recordPageView, partial.placeholder, 'Purchases' );
 const user = userFactory();
@@ -46,7 +47,7 @@ export default {
 	},
 
 	addCreditCard( context, next ) {
-		recordPurchasesPageView( paths.addCreditCard(), 'Add Credit Card' );
+		recordPurchasesPageView( paths.addCreditCard, 'Add Credit Card' );
 
 		context.primary = <AddCreditCard />;
 		next();
@@ -100,7 +101,7 @@ export default {
 	list( context, next ) {
 		setTitle( context );
 
-		recordPurchasesPageView( paths.purchasesRoot() );
+		recordPurchasesPageView( paths.purchasesRoot );
 
 		context.primary = <PurchasesList noticeType={ context.params.noticeType } />;
 		next();
@@ -135,5 +136,8 @@ export default {
 				<NoSitesMessage />
 			</Main>
 		);
+
+		makeLayout( context, noop );
+		clientRender( context );
 	},
 };

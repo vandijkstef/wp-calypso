@@ -16,10 +16,6 @@ import config from 'config';
 import Main from 'components/main';
 import Card from 'components/card';
 import Notice from 'components/notice';
-import OlarkChatbox from 'components/olark-chatbox';
-import olarkStore from 'lib/olark-store';
-import olarkActions from 'lib/olark-store/actions';
-import olarkEvents from 'lib/olark-events';
 import HelpContactForm from 'me/help/help-contact-form';
 import HelpContactClosed from 'me/help/help-contact-closed';
 import HelpContactConfirmation from 'me/help/help-contact-confirmation';
@@ -27,16 +23,15 @@ import HeaderCake from 'components/header-cake';
 import wpcomLib from 'lib/wp';
 import notices from 'notices';
 import analytics from 'lib/analytics';
-import { isOlarkTimedOut } from 'state/ui/olark/selectors';
 import getHappychatUserInfo from 'state/happychat/selectors/get-happychat-userinfo';
 import isHappychatAvailable from 'state/happychat/selectors/is-happychat-available';
+import isHappychatUserEligible from 'state/happychat/selectors/is-happychat-user-eligible';
 import {
 	isTicketSupportEligible,
 	isTicketSupportConfigurationReady,
 	getTicketSupportRequestError,
 } from 'state/help/ticket/selectors';
 import HappychatConnection from 'components/happychat/connection-connected';
-import QueryOlark from 'components/data/query-olark';
 import QueryTicketSupportConfiguration from 'components/data/query-ticket-support-configuration';
 import HelpUnverifiedWarning from '../help-unverified-warning';
 import {
@@ -72,38 +67,22 @@ let savedContactForm = null;
 
 const SUPPORT_DIRECTLY = 'SUPPORT_DIRECTLY';
 const SUPPORT_HAPPYCHAT = 'SUPPORT_HAPPYCHAT';
-const SUPPORT_LIVECHAT = 'SUPPORT_LIVECHAT';
 const SUPPORT_TICKET = 'SUPPORT_TICKET';
 const SUPPORT_FORUM = 'SUPPORT_FORUM';
 
 const startShowingChristmas2017ClosureNoticeAt = i18n.moment( 'Sun, 17 Dec 2017 00:00:00 +0000' );
 const stopShowingChristmas2017ClosureNoticeAt = i18n.moment( 'Tue, 26 Dec 2017 00:00:00 +0000' );
+const startShowingNewYear2018ClosureNoticeAt = i18n.moment( 'Fri, 29 Dec 2017 00:00:00 +0000' );
+const stopShowingNewYear2018ClosureNoticeAt = i18n.moment( 'Tue, 2 Jan 2018 00:00:00 +0000' );
 
 class HelpContact extends React.Component {
 	state = {
-		olark: olarkStore.get(),
 		isSubmitting: false,
 		confirmation: null,
-		isChatEnded: false,
 	};
 
 	componentDidMount() {
 		this.prepareDirectlyWidget();
-
-		olarkStore.on( 'change', this.updateOlarkState );
-		olarkEvents.on( 'api.chat.onOperatorsAway', this.onOperatorsAway );
-		olarkEvents.on( 'api.chat.onOperatorsAvailable', this.onOperatorsAvailable );
-		olarkEvents.on( 'api.chat.onCommandFromOperator', this.onCommandFromOperator );
-		olarkEvents.on( 'api.chat.onMessageToVisitor', this.onMessageToVisitor );
-		olarkEvents.on( 'api.chat.onMessageToOperator', this.onMessageToOperator );
-
-		olarkActions.updateDetails();
-
-		// The following lines trick olark into thinking we are interacting with it. This interaction
-		// makes olark fire off its onOperatorsAway and onOperatorsAvailable events sooner.
-		olarkActions.expandBox();
-		olarkActions.shrinkBox();
-		olarkActions.hideBox();
 	}
 
 	componentDidUpdate() {
@@ -112,25 +91,6 @@ class HelpContact extends React.Component {
 		// some other variation.
 		this.prepareDirectlyWidget();
 	}
-
-	componentWillUnmount() {
-		const { details, isOperatorAvailable } = this.state.olark;
-
-		olarkStore.removeListener( 'change', this.updateOlarkState );
-		olarkEvents.off( 'api.chat.onOperatorsAway', this.onOperatorsAway );
-		olarkEvents.off( 'api.chat.onOperatorsAvailable', this.onOperatorsAvailable );
-		olarkEvents.off( 'api.chat.onCommandFromOperator', this.onCommandFromOperator );
-		olarkEvents.off( 'api.chat.onMessageToVisitor', this.onMessageToVisitor );
-		olarkEvents.off( 'api.chat.onMessageToOperator', this.onMessageToOperator );
-
-		if ( details.isConversing && ! isOperatorAvailable ) {
-			olarkActions.shrinkBox();
-		}
-	}
-
-	updateOlarkState = () => {
-		this.setState( { olark: olarkStore.get() } );
-	};
 
 	backToHelp = () => {
 		page( '/help' );
@@ -153,28 +113,6 @@ class HelpContact extends React.Component {
 		} );
 
 		page( '/help' );
-	};
-
-	startChat = contactForm => {
-		const { message, howCanWeHelp, howYouFeel, site } = contactForm;
-
-		// Intentionally not translated since only HE's will see this in the olark console as a notification.
-		const notifications = [
-			'How can you help: ' + howCanWeHelp,
-			'How I feel: ' + howYouFeel,
-			'Site I need help with: ' + ( site ? site.URL : 'N/A' ),
-		];
-
-		notifications.forEach( olarkActions.sendNotificationToOperator );
-
-		analytics.tracks.recordEvent( 'calypso_help_live_chat_begin', {
-			site_plan_product_id: site ? site.plan.product_id : null,
-			is_automated_transfer: site ? site.options.is_automated_transfer : null,
-		} );
-
-		this.sendMessageToOperator( message );
-
-		this.clearSavedContactForm();
 	};
 
 	prepareDirectlyWidget = () => {
@@ -289,143 +227,7 @@ class HelpContact extends React.Component {
 		this.clearSavedContactForm();
 	};
 
-	/**
-	 * Send a message to an olark operator.
-	 * @param  {string} message The message to be sent to an operator
-	 */
-	sendMessageToOperator = message => {
-		// Get the DOM element of the olark textarea
-		const widgetInput = window.document.getElementById( 'habla_wcsend_input' );
-		const KEY_ENTER = 13;
-
-		if ( ! widgetInput ) {
-			// We couldn't find the input box in the olark widget so return false since we can't send the message
-			return;
-		}
-
-		// Theres no api call that sends a message to an operator so in order to achieve this we send a fake
-		// "enter" keypress event that olark will be listening for. The enter key event is what then triggers the sending of
-		// the message.
-
-		// Show the olark box so that we may manipulate it.
-		// You can only send a message when the olark box is expanded.
-		olarkActions.expandBox();
-
-		// Send focus to the textarea because olark expects it.
-		widgetInput.focus();
-
-		// IE requires this to be executed before the value is set, don't know why.
-		widgetInput.onkeydown( { keyCode: KEY_ENTER } );
-		widgetInput.value = message;
-
-		// Trigger the onkeydown callback added by olark so that we can send the message to the operator.
-		widgetInput.onkeydown( { keyCode: KEY_ENTER } );
-	};
-
-	onMessageToVisitor = () => {
-		this.trackChatDisplayError( 'onMessageToVisitor' );
-	};
-
-	onMessageToOperator = () => {
-		this.trackChatDisplayError( 'onMessageToOperator' );
-	};
-
-	trackChatDisplayError = olarkEvent => {
-		const { olark, isChatEnded } = this.state;
-
-		// If the user sent/received a message to/from an operator but the chatbox is not inlined
-		// then something must be going wrong. Lets record this event and give some details
-		if ( this.canShowChatbox() ) {
-			return;
-		}
-
-		const tracksData = {
-			olark_event: olarkEvent,
-			olark_locale: olark.locale,
-			olark_is_chat_ended: isChatEnded,
-			olark_is_ready: olark.isOlarkReady,
-			olark_is_expanded: olark.isOlarkExpanded,
-			olark_is_user_eligible: olark.isUserEligible,
-			olark_is_operator_available: olark.isOperatorAvailable,
-		};
-
-		// Do a check here to make sure that details are present because an error in the
-		// olark event stack could cause it to be null/undefined
-		if ( olark.details ) {
-			tracksData.olark_is_conversing = olark.details.isConversing;
-		} else {
-			tracksData.olark_details_missing = true;
-		}
-
-		analytics.tracks.recordEvent( 'calypso_help_contact_chatbox_mistaken_display', tracksData );
-	};
-
-	trackContactFormAndFillSubject = () => {
-		const { details } = this.state.olark;
-		if ( ! details.isConversing ) {
-			analytics.tracks.recordEvent( 'calypso_help_offline_form_display', {
-				form_type: 'kayako',
-			} );
-		}
-		this.autofillSubject();
-	};
-
-	onOperatorsAway = () => {
-		const IS_UNAVAILABLE = false;
-		this.trackContactFormAndFillSubject();
-		this.showAvailabilityNotice( IS_UNAVAILABLE );
-	};
-
-	onOperatorsAvailable = () => {
-		const IS_AVAILABLE = true;
-
-		this.showAvailabilityNotice( IS_AVAILABLE );
-	};
-
-	showAvailabilityNotice = isAvailable => {
-		const { isUserEligible, isOlarkReady } = this.state.olark;
-
-		if ( ! isOlarkReady || ! isUserEligible ) {
-			return;
-		}
-
-		if ( isAvailable ) {
-			notices.success(
-				this.props.translate( 'Our Happiness Engineers have returned, chat with us.' )
-			);
-		} else {
-			notices.warning(
-				this.props.translate( 'Sorry! We just missed you as our Happiness Engineers stepped away.' )
-			);
-		}
-	};
-
-	/**
-	 * Auto fill the subject with the first five words contained in the message field of the contact form.
-	 */
-	autofillSubject = () => {
-		if ( ! savedContactForm || ! savedContactForm.message || savedContactForm.subject ) {
-			return;
-		}
-
-		const words = savedContactForm.message.split( /\s+/ );
-
-		savedContactForm = Object.assign( savedContactForm, {
-			subject: words.slice( 0, 5 ).join( ' ' ) + '…',
-		} );
-
-		this.forceUpdate();
-	};
-
-	onCommandFromOperator = event => {
-		if ( event.command.name === 'end' ) {
-			this.setState( { isChatEnded: true } );
-		}
-	};
-
 	shouldUseHappychat = () => {
-		const { olark } = this.state;
-
 		// if happychat is disabled in the config, do not use it
 		if ( ! config.isEnabled( 'happychat' ) ) {
 			return false;
@@ -434,7 +236,7 @@ class HelpContact extends React.Component {
 		// if the happychat connection is able to accept chats, use it
 		return (
 			this.props.isHappychatAvailable &&
-			olark.isUserEligible &&
+			this.props.isHappychatUserEligible &&
 			this.props.isSelectedHelpSiteOnPaidPlan
 		);
 	};
@@ -444,24 +246,14 @@ class HelpContact extends React.Component {
 		return isEn && ! this.props.isDirectlyFailed;
 	};
 
-	canShowChatbox = () => {
-		const { olark, isChatEnded } = this.state;
-		return isChatEnded || ( olark.details.isConversing && olark.isOperatorAvailable );
-	};
-
 	getSupportVariation = () => {
-		const { olark } = this.state;
 		const { ticketSupportEligible } = this.props;
 
 		if ( this.shouldUseHappychat() ) {
 			return SUPPORT_HAPPYCHAT;
 		}
 
-		if ( olark.isUserEligible && olark.isOperatorAvailable ) {
-			return SUPPORT_LIVECHAT;
-		}
-
-		if ( olark.details.isConversing || ticketSupportEligible ) {
+		if ( ticketSupportEligible ) {
 			return SUPPORT_TICKET;
 		}
 
@@ -478,20 +270,10 @@ class HelpContact extends React.Component {
 
 		switch ( variationSlug ) {
 			case SUPPORT_HAPPYCHAT:
-				const isDev = config( 'env' ) === 'development' || config( 'env_id' ) === 'stage';
+				const isDev = process.env.NODE_ENV === 'development' || config( 'env_id' ) === 'stage';
 				return {
 					onSubmit: this.startHappychat,
 					buttonLabel: isDev ? 'Happychat' : translate( 'Chat with us' ),
-					showSubjectField: false,
-					showHowCanWeHelpField: true,
-					showHowYouFeelField: true,
-					showSiteField: hasMoreThanOneSite,
-				};
-
-			case SUPPORT_LIVECHAT:
-				return {
-					onSubmit: this.startChat,
-					buttonLabel: translate( 'Chat with us' ),
 					showSubjectField: false,
 					showHowCanWeHelpField: true,
 					showHowYouFeelField: true,
@@ -586,11 +368,7 @@ class HelpContact extends React.Component {
 	shouldShowTicketRequestErrorNotice = variationSlug => {
 		const { ticketSupportRequestError } = this.props;
 
-		return (
-			SUPPORT_HAPPYCHAT !== variationSlug &&
-			SUPPORT_LIVECHAT !== variationSlug &&
-			null != ticketSupportRequestError
-		);
+		return SUPPORT_HAPPYCHAT !== variationSlug && null != ticketSupportRequestError;
 	};
 
 	/**
@@ -600,13 +378,12 @@ class HelpContact extends React.Component {
 	 * @returns {Boolean} Whether all the data is present to determine the variation to show
 	 */
 	hasDataToDetermineVariation = () => {
-		const { olark } = this.state;
-		const { ticketSupportConfigurationReady, ticketSupportRequestError } = this.props;
+		const ticketReadyOrError =
+			this.props.ticketSupportConfigurationReady || null != this.props.ticketSupportRequestError;
+		const happychatReadyOrDisabled =
+			! config.isEnabled( 'happychat' ) || this.props.isHappychatUserEligible !== null;
 
-		const olarkReadyOrTimedOut = olark.isOlarkReady || this.props.olarkTimedOut;
-		const ticketReadyOrError = ticketSupportConfigurationReady || null != ticketSupportRequestError;
-
-		return olarkReadyOrTimedOut && ticketReadyOrError;
+		return ticketReadyOrError && happychatReadyOrDisabled;
 	};
 
 	shouldShowPreloadForm = () => {
@@ -619,7 +396,7 @@ class HelpContact extends React.Component {
 	};
 
 	/**
-	 * Get the view for the contact page. This could either be the olark chat widget if a chat is in progress or a contact form.
+	 * Get the view for the contact page.
 	 * @return {object} A JSX object that should be rendered
 	 */
 	getView = () => {
@@ -644,13 +421,6 @@ class HelpContact extends React.Component {
 				</div>
 			);
 		}
-
-		if ( this.canShowChatbox() ) {
-			return <OlarkChatbox />;
-		}
-
-		// Hide the olark widget in the bottom right corner.
-		olarkActions.hideBox();
 
 		const supportVariation = this.getSupportVariation();
 
@@ -681,16 +451,23 @@ class HelpContact extends React.Component {
 			this.getContactFormPropsVariation( supportVariation )
 		);
 
-		const currentDate = Date.now();
+		const currentDate = i18n.moment();
 
 		// Customers sent to Directly and Forum are not affected by the Christmas closures
 		const isUserAffectedByChristmas2017Closure =
 			supportVariation !== SUPPORT_DIRECTLY && supportVariation !== SUPPORT_FORUM;
 
-		const shouldShowClosureNotice =
-			isUserAffectedByChristmas2017Closure &&
-			currentDate > startShowingChristmas2017ClosureNoticeAt &&
-			currentDate < stopShowingChristmas2017ClosureNoticeAt;
+		const isClosureNoticeInEffect =
+			currentDate.isBetween(
+				startShowingChristmas2017ClosureNoticeAt,
+				stopShowingChristmas2017ClosureNoticeAt
+			) ||
+			currentDate.isBetween(
+				startShowingNewYear2018ClosureNoticeAt,
+				stopShowingNewYear2018ClosureNoticeAt
+			);
+
+		const shouldShowClosureNotice = isUserAffectedByChristmas2017Closure && isClosureNoticeInEffect;
 
 		return (
 			<div>
@@ -717,13 +494,8 @@ class HelpContact extends React.Component {
 					{ this.props.translate( 'Contact Us' ) }
 				</HeaderCake>
 				{ ! this.props.isEmailVerified && <HelpUnverifiedWarning /> }
-				<Card
-					className={ this.canShowChatbox() ? 'help-contact__chat-form' : 'help-contact__form' }
-				>
-					{ this.getView() }
-				</Card>
+				<Card className="help-contact__form">{ this.getView() }</Card>
 				{ this.props.shouldStartHappychatConnection && <HappychatConnection /> }
-				<QueryOlark />
 				<QueryTicketSupportConfiguration />
 				<QueryUserPurchases userId={ this.props.currentUser.ID } />
 			</Main>
@@ -743,9 +515,9 @@ export default connect(
 			isDirectlyFailed: isDirectlyFailed( state ),
 			isDirectlyReady: isDirectlyReady( state ),
 			isDirectlyUninitialized: isDirectlyUninitialized( state ),
-			olarkTimedOut: isOlarkTimedOut( state ),
 			isEmailVerified: isCurrentUserEmailVerified( state ),
 			isHappychatAvailable: isHappychatAvailable( state ),
+			isHappychatUserEligible: isHappychatUserEligible( state ),
 			ticketSupportConfigurationReady: isTicketSupportConfigurationReady( state ),
 			ticketSupportEligible: isTicketSupportEligible( state ),
 			ticketSupportRequestError: getTicketSupportRequestError( state ),

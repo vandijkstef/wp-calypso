@@ -4,7 +4,7 @@
  * External dependencies
  */
 
-import { find, filter, sortBy } from 'lodash';
+import { find, filter, get, includes, sortBy } from 'lodash';
 
 /**
  * Internal dependencies
@@ -32,6 +32,16 @@ export const getCountryData = country => {
 	return countryData;
 };
 
+/**
+ * Whether or not we support store management in calypso for
+ * the passed country
+ * @param {string} country Country (code) to check
+ * @return {bool} whether store management in calypso is supported
+ */
+export const isStoreManagementSupportedInCalypsoForCountry = country => {
+	return includes( [ 'US', 'CA' ], country );
+};
+
 export const getStateData = ( country, state ) => {
 	const countryData = getCountryData( country );
 	if ( ! countryData ) {
@@ -43,6 +53,39 @@ export const getStateData = ( country, state ) => {
 	}
 
 	return stateData;
+};
+
+/**
+ * Returns an appropriate default currency (code) for
+ * the given country (code).
+ * @param {string} country Country (code) to get currency code for
+ * @return {string} default currency code for country
+ */
+export const getCurrencyCodeForCountry = country => {
+	const countryData = getCountryData( country );
+	return get( countryData, 'currency', false );
+};
+
+/**
+ * Returns an appropriate default dimension unit for
+ * the given country (code).
+ * @param {string} country Country (code) to get dimension unit for
+ * @return {string} default dimension unit for country
+ */
+export const getDimensionUnitForCountry = country => {
+	const countryData = getCountryData( country );
+	return get( countryData, 'dimensionUnit', false );
+};
+
+/**
+ * Returns an appropriate default weight unit for
+ * the given country (code).
+ * @param {string} country Country (code) to get weight unit for
+ * @return {string} default weight unit for country
+ */
+export const getWeightUnitForCountry = country => {
+	const countryData = getCountryData( country );
+	return get( countryData, 'weightUnit', false );
 };
 
 /**

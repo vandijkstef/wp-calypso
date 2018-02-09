@@ -68,7 +68,8 @@
 	}
 }
 
-.docs__design-button-row .button-group .button {
+.docs__design-button-row .button-group .button,
+.docs__design-button-row .split-button__main {
 	margin-right: 0 !important;
 }
 
@@ -119,7 +120,7 @@
 }
 
 .state-value {
-	color: darken( $gray, 20% );
+	color: $gray-darken-20;
 	font-size: 13px;
 	background-color: $white;
 	padding: 5px;

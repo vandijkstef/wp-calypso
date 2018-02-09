@@ -20,7 +20,7 @@ import { serialize as serializeContactForm } from 'components/tinymce/plugins/co
 import { serialize as serializeSimplePayment } from 'components/tinymce/plugins/simple-payments/shortcode-utils';
 import MediaActions from 'lib/media/actions';
 import MediaLibrarySelectedStore from 'lib/media/library-selected-store';
-import MediaUtils from 'lib/media/utils';
+import { getMimePrefix } from 'lib/media/utils';
 import MediaValidationStore from 'lib/media/validation-store';
 import PostActions from 'lib/posts/actions';
 import { isWithinBreakpoint } from 'lib/viewport';
@@ -429,6 +429,14 @@ export class EditorHtmlToolbar extends Component {
 		} );
 	};
 
+	openPexelsModal = () => {
+		this.setState( {
+			showInsertContentMenu: false,
+			showMediaModal: true,
+			source: 'pexels',
+		} );
+	};
+
 	closeMediaModal = () => {
 		this.setState( { showMediaModal: false } );
 	};
@@ -462,7 +470,7 @@ export class EditorHtmlToolbar extends Component {
 		// inserted directly into the post contents.
 		const selectedItems = MediaLibrarySelectedStore.getAll( site.ID );
 		const isSingleImage =
-			1 === selectedItems.length && 'image' === MediaUtils.getMimePrefix( selectedItems[ 0 ] );
+			1 === selectedItems.length && 'image' === getMimePrefix( selectedItems[ 0 ] );
 
 		if ( isSingleImage && ! MediaValidationStore.hasErrors( site.ID ) ) {
 			// For single image upload, insert into post content, blocking save
@@ -498,13 +506,23 @@ export class EditorHtmlToolbar extends Component {
 					<span data-e2e-insert-type="media">{ translate( 'Media' ) }</span>
 				</div>
 
-				{ config.isEnabled( 'external-media' ) && (
+				{ config.isEnabled( 'external-media/google-photos' ) && (
 					<div
 						className="editor-html-toolbar__insert-content-dropdown-item"
 						onClick={ this.openGoogleModal }
 					>
 						<Gridicon icon="add-image" />
 						<span data-e2e-insert-type="google-media">{ translate( 'Media from Google' ) }</span>
+					</div>
+				) }
+
+				{ config.isEnabled( 'external-media/free-photo-library' ) && (
+					<div
+						className="editor-html-toolbar__insert-content-dropdown-item"
+						onClick={ this.openPexelsModal }
+					>
+						<Gridicon icon="add-image" />
+						<span data-e2e-insert-type="pexels">{ translate( 'Free photo library' ) }</span>
 					</div>
 				) }
 
@@ -609,9 +627,9 @@ export class EditorHtmlToolbar extends Component {
 							{ map( buttons, ( { disabled, label, onClick }, tag ) => (
 								<Button
 									borderless
-									className={ `editor-html-toolbar__button-${ tag } ${ this.isTagOpen( tag )
-										? 'is-tag-open'
-										: '' }` }
+									className={ `editor-html-toolbar__button-${ tag } ${
+										this.isTagOpen( tag ) ? 'is-tag-open' : ''
+									}` }
 									compact
 									disabled={ disabled }
 									key={ tag }

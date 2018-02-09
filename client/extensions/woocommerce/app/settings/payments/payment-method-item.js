@@ -13,7 +13,6 @@ import { localize } from 'i18n-calypso';
 /**
  * Internal dependencies
  */
-import analytics from 'lib/analytics';
 import Button from 'components/button';
 import {
 	cancelEditingPaymentMethod,
@@ -35,6 +34,7 @@ import PaymentMethodEditFormToggle from './payment-method-edit-form-toggle';
 import PaymentMethodPaypal from './payment-method-paypal';
 import PaymentMethodStripe from './payment-method-stripe';
 import PaymentMethodCheque from './payment-method-cheque';
+import { recordTrack } from 'woocommerce/lib/analytics';
 
 class PaymentMethodItem extends Component {
 	static propTypes = {
@@ -51,6 +51,7 @@ class PaymentMethodItem extends Component {
 			id: PropTypes.string,
 			informationUrl: PropTypes.string,
 		} ),
+		onChange: PropTypes.func.isRequired,
 		openPaymentMethodForEdit: PropTypes.func.isRequired,
 		site: PropTypes.shape( {
 			title: PropTypes.string,
@@ -76,21 +77,24 @@ class PaymentMethodItem extends Component {
 	};
 
 	onEditField = ( field, value ) => {
+		this.props.onChange();
 		this.props.changePaymentMethodField( this.props.site.ID, field, value );
 	};
 
 	onChangeEnabled = e => {
 		const { method, site } = this.props;
 
+		this.props.onChange();
+
 		const enabled = 'yes' === e.target.value;
 		this.props.changePaymentMethodEnabled( site.ID, method.id, enabled );
 
 		if ( enabled ) {
-			analytics.tracks.recordEvent( 'calypso_woocommerce_payment_method_enabled', {
+			recordTrack( 'calypso_woocommerce_payment_method_enabled', {
 				payment_method: method.id,
 			} );
 		} else {
-			analytics.tracks.recordEvent( 'calypso_woocommerce_payment_method_disabled', {
+			recordTrack( 'calypso_woocommerce_payment_method_disabled', {
 				payment_method: method.id,
 			} );
 		}
@@ -105,8 +109,9 @@ class PaymentMethodItem extends Component {
 		const { method, site } = this.props;
 		this.props.closeEditingPaymentMethod( site.ID, method.id );
 		if ( ! method.enabled ) {
+			this.props.onChange();
 			this.props.changePaymentMethodEnabled( site.ID, method.id, true );
-			analytics.tracks.recordEvent( 'calypso_woocommerce_payment_method_enabled', {
+			recordTrack( 'calypso_woocommerce_payment_method_enabled', {
 				payment_method: method.id,
 			} );
 		}

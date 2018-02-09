@@ -19,7 +19,7 @@ import ActionHeader from 'woocommerce/components/action-header';
 import Button from 'components/button';
 import { createPaymentSettingsActionList } from 'woocommerce/state/ui/payments/actions';
 import { errorNotice, successNotice } from 'state/notices/actions';
-import { fetchSetupChoices } from 'woocommerce/state/sites/setup-choices/actions';
+import ExtendedHeader from 'woocommerce/components/extended-header';
 import { getActionList } from 'woocommerce/state/action-list/selectors';
 import { getFinishedInitialSetup } from 'woocommerce/state/sites/setup-choices/selectors';
 import { getLink } from 'woocommerce/lib/nav-utils';
@@ -29,14 +29,17 @@ import {
 	hasOAuthCompleteInLocation,
 } from './stripe/payment-method-stripe-utils';
 import { openPaymentMethodForEdit } from 'woocommerce/state/ui/payments/methods/actions';
+import { ProtectFormGuard } from 'lib/protect-form';
 import Main from 'components/main';
+import PaymentMethodList from './payment-method-list';
 import SettingsPaymentsLocationCurrency from './payments-location-currency';
 import SettingsNavigation from '../navigation';
-import SettingsPaymentsOffline from './payments-offline';
-import SettingsPaymentsOffSite from './payments-off-site';
-import SettingsPaymentsOnSite from './payments-on-site';
 
 class SettingsPayments extends Component {
+	state = {
+		pristine: true,
+	};
+
 	static propTypes = {
 		isSaving: PropTypes.bool,
 		site: PropTypes.shape( {
@@ -49,10 +52,6 @@ class SettingsPayments extends Component {
 	componentDidMount = () => {
 		const { site } = this.props;
 
-		if ( site && site.ID ) {
-			this.props.fetchSetupChoices( site.ID );
-		}
-
 		// If we are in the middle of the Stripe Connect OAuth flow
 		// go ahead and option the Stripe dialog right away so
 		// we can complete the flow
@@ -61,20 +60,11 @@ class SettingsPayments extends Component {
 		}
 	};
 
-	componentWillReceiveProps = newProps => {
-		const { site } = this.props;
-
-		const newSiteId = newProps.site ? newProps.site.ID : null;
-		const oldSiteId = site ? site.ID : null;
-
-		if ( oldSiteId !== newSiteId ) {
-			this.props.fetchSetupChoices( newSiteId );
-		}
-	};
-
 	onSave = () => {
 		const { translate, site, finishedInitialSetup } = this.props;
 		const successAction = () => {
+			this.setState( { pristine: true } );
+
 			if ( ! finishedInitialSetup ) {
 				page.redirect( getLink( '/store/:site', site ) );
 			}
@@ -90,6 +80,47 @@ class SettingsPayments extends Component {
 		);
 
 		this.props.createPaymentSettingsActionList( successAction, failureAction );
+	};
+
+	renderPaymentSection = ( { description, label, methodType } ) => (
+		<div className="payments__type-container" key={ methodType }>
+			<ExtendedHeader label={ label } description={ description } />
+			<PaymentMethodList methodType={ methodType } onChange={ this.onChange } />
+		</div>
+	);
+
+	renderPaymentSections = () => {
+		const { translate } = this.props;
+
+		const paymentSections = [
+			{
+				methodType: 'on-site',
+				label: translate( 'On-site' ),
+				description: translate(
+					'Take credit card payments directly on your site, ' +
+						'without redirecting customers to a third-party site.'
+				),
+			},
+			{
+				methodType: 'off-site',
+				label: translate( 'Off-site' ),
+				description: translate(
+					'Take payments through a third-party site, like PayPal. ' +
+						'Customers will leave your store to pay.'
+				),
+			},
+			{
+				methodType: 'offline',
+				label: translate( 'Offline' ),
+				description: translate( 'Take payments in-person.' ),
+			},
+		];
+
+		return <div>{ paymentSections.map( this.renderPaymentSection ) }</div>;
+	};
+
+	onChange = () => {
+		this.setState( { pristine: false } );
 	};
 
 	render() {
@@ -109,10 +140,9 @@ class SettingsPayments extends Component {
 					</Button>
 				</ActionHeader>
 				<SettingsNavigation activeSection="payments" />
-				<SettingsPaymentsLocationCurrency />
-				<SettingsPaymentsOnSite />
-				<SettingsPaymentsOffSite />
-				<SettingsPaymentsOffline />
+				<SettingsPaymentsLocationCurrency onChange={ this.onChange } />
+				{ this.renderPaymentSections() }
+				<ProtectFormGuard isChanged={ ! this.state.pristine } />
 			</Main>
 		);
 	}
@@ -132,7 +162,6 @@ function mapDispatchToProps( dispatch ) {
 	return bindActionCreators(
 		{
 			createPaymentSettingsActionList,
-			fetchSetupChoices,
 			openPaymentMethodForEdit,
 		},
 		dispatch

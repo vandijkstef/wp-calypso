@@ -20,21 +20,15 @@ import { connect } from 'react-redux';
 /**
  * Internal dependencies
  */
-import CalendarStep from './calendar-step';
-import ConfirmationStep from './confirmation-step';
-import InfoStep from './info-step';
 import Main from 'components/main';
-import Skeleton from './skeleton';
-import Upsell from './upsell';
-import QueryConciergeShifts from 'components/data/query-concierge-shifts';
+import QueryConciergeAvailableTimes from 'components/data/query-concierge-available-times';
 import QuerySites from 'components/data/query-sites';
 import QuerySitePlans from 'components/data/query-site-plans';
 import { PLAN_BUSINESS } from 'lib/plans/constants';
-import { getConciergeShifts } from 'state/selectors';
+import { getConciergeAvailableTimes } from 'state/selectors';
 import { WPCOM_CONCIERGE_SCHEDULE_ID } from './constants';
 import { getSite } from 'state/sites/selectors';
-
-const STEP_COMPONENTS = [ InfoStep, CalendarStep, ConfirmationStep ];
+import Upsell from './shared/upsell';
 
 class ConciergeMain extends Component {
 	constructor( props ) {
@@ -54,8 +48,9 @@ class ConciergeMain extends Component {
 	};
 
 	getDisplayComponent = () => {
-		const { availableTimes, site } = this.props;
-		const CurrentStep = STEP_COMPONENTS[ this.state.currentStep ];
+		const { appointmentId, availableTimes, site, steps } = this.props;
+		const CurrentStep = steps[ this.state.currentStep ];
+		const Skeleton = this.props.skeleton;
 
 		if ( ! availableTimes || ! site || ! site.plan ) {
 			return <Skeleton />;
@@ -68,6 +63,7 @@ class ConciergeMain extends Component {
 		// We have shift data and this is a business site — show the signup steps
 		return (
 			<CurrentStep
+				appointmentId={ appointmentId }
 				availableTimes={ availableTimes }
 				site={ site }
 				onComplete={ this.goToNextStep }
@@ -79,11 +75,9 @@ class ConciergeMain extends Component {
 	render() {
 		const { site } = this.props;
 
-		// TODO:
-		// render the shifts for real.
 		return (
 			<Main>
-				<QueryConciergeShifts scheduleId={ WPCOM_CONCIERGE_SCHEDULE_ID } />
+				<QueryConciergeAvailableTimes scheduleId={ WPCOM_CONCIERGE_SCHEDULE_ID } />
 				<QuerySites />
 				{ site && <QuerySitePlans siteId={ site.ID } /> }
 				{ this.getDisplayComponent() }
@@ -92,10 +86,7 @@ class ConciergeMain extends Component {
 	}
 }
 
-export default connect(
-	( state, props ) => ( {
-		availableTimes: getConciergeShifts( state ),
-		site: getSite( state, props.siteSlug ),
-	} ),
-	{ getConciergeShifts }
-)( ConciergeMain );
+export default connect( ( state, props ) => ( {
+	availableTimes: getConciergeAvailableTimes( state ),
+	site: getSite( state, props.siteSlug ),
+} ) )( ConciergeMain );

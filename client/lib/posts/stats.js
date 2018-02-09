@@ -1,19 +1,16 @@
+/** @format */
 /**
  * External dependencies
- *
- * @format
  */
-
 import debugModule from 'debug';
 import { noop } from 'lodash';
 
 /**
  * Internal dependencies
  */
-import config from 'config';
 import analytics from 'lib/analytics';
 import PostEditStore from 'lib/posts/post-edit-store';
-import utils from 'lib/posts/utils';
+import * as utils from 'lib/posts/utils';
 
 /**
  * Module variables
@@ -114,7 +111,7 @@ export function recordSaveEvent( site, context ) {
 	} );
 }
 
-const shouldBumpStat = Math.random() <= 0.01 || config( 'env' ) === 'development';
+const shouldBumpStat = Math.random() <= 0.01 || process.env.NODE_ENV === 'development';
 const maybeBumpStat = shouldBumpStat ? analytics.mc.bumpStat : noop;
 
 export function recordTinyMCEButtonClick( buttonName ) {

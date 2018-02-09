@@ -38,7 +38,6 @@ export function transformer( apiResponse ) {
 export function processItem( item ) {
 	const published = item.published;
 	const actor = item.actor;
-	const isFormatted = 'string' !== typeof item.summary;
 
 	return {
 		/* activity actor */
@@ -54,14 +53,15 @@ export function processItem( item ) {
 		activityGroup: ( item.name || '' ).split( '__', 1 )[ 0 ], // split always returns at least one item
 		activityIcon: get( item, 'gridicon', DEFAULT_GRIDICON ),
 		activityId: item.activity_id,
+		activityIsDiscarded: item.is_discarded,
 		activityIsRewindable: item.is_rewindable,
 		rewindId: item.rewind_id,
 		activityName: item.name,
 		activityStatus: item.status,
 		activityTargetTs: get( item, 'object.target_ts', undefined ),
-		activityTitle: isFormatted ? get( item, 'summary.text', '' ) : item.summary,
+		activityTitle: item.summary,
 		activityTs: Date.parse( published ),
-		activityDescription: isFormatted ? parseBlock( item.summary ) : undefined,
+		activityDescription: parseBlock( item.content ),
 	};
 }
 

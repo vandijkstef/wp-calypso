@@ -13,6 +13,8 @@ const path = require( 'path' ),
 	morgan = require( 'morgan' ),
 	pages = require( 'pages' );
 
+const analytics = require( '../lib/analytics' ).default;
+
 /**
  * Returns the server HTTP request handler "app".
  * @returns {object} The express app
@@ -30,7 +32,7 @@ function setup() {
 	app.use( cookieParser() );
 	app.use( userAgent.express() );
 
-	if ( 'development' === config( 'env' ) ) {
+	if ( 'development' === process.env.NODE_ENV ) {
 		// use legacy CSS rebuild system if css-hot-reload is disabled
 		if ( ! config.isEnabled( 'css-hot-reload' ) ) {
 			// only do `build` upon every request in "development"
@@ -80,7 +82,6 @@ function setup() {
 
 	// loaded when we detect stats blockers - see lib/analytics/index.js
 	app.get( '/nostats.js', function( request, response ) {
-		const analytics = require( '../lib/analytics' );
 		analytics.tracks.recordEvent(
 			'calypso_stats_blocked',
 			{
@@ -93,7 +94,7 @@ function setup() {
 	} );
 
 	// serve files when not in production so that the source maps work correctly
-	if ( 'development' === config( 'env' ) ) {
+	if ( 'development' === process.env.NODE_ENV ) {
 		app.use( '/assets', express.static( path.resolve( __dirname, '..', '..', 'assets' ) ) );
 		app.use( '/client', express.static( path.resolve( __dirname, '..', '..', 'client' ) ) );
 	}

@@ -19,6 +19,8 @@ export default function() {
 
 	page(
 		'/jetpack/connect/:type(personal|premium|pro)/:interval(yearly|monthly)?',
+		controller.persistMobileAppFlow,
+		controller.setMasterbar,
 		controller.connect,
 		makeLayout,
 		clientRender
@@ -26,31 +28,62 @@ export default function() {
 
 	page(
 		'/jetpack/connect/:type(install)/:locale?',
-		controller.redirectWithoutLocaleifLoggedIn,
+		controller.redirectWithoutLocaleIfLoggedIn,
+		controller.persistMobileAppFlow,
+		controller.setMasterbar,
 		controller.connect,
 		makeLayout,
 		clientRender
 	);
 
-	page( '/jetpack/connect', controller.connect, makeLayout, clientRender );
-
 	page(
-		'/jetpack/connect/authorize/:localeOrInterval?',
-		controller.maybeOnboard,
-		controller.redirectWithoutLocaleifLoggedIn,
-		controller.authorizeForm,
+		'/jetpack/connect',
+		controller.persistMobileAppFlow,
+		controller.setMasterbar,
+		controller.connect,
 		makeLayout,
 		clientRender
 	);
 
-	page(
-		'/jetpack/connect/authorize/:interval/:locale',
-		controller.maybeOnboard,
-		controller.redirectWithoutLocaleifLoggedIn,
-		controller.authorizeForm,
-		makeLayout,
-		clientRender
-	);
+	if ( isLoggedOut ) {
+		page(
+			'/jetpack/connect/authorize/:localeOrInterval?',
+			controller.maybeOnboard,
+			controller.setMasterbar,
+			controller.signupForm,
+			makeLayout,
+			clientRender
+		);
+
+		page(
+			'/jetpack/connect/authorize/:interval/:locale',
+			controller.maybeOnboard,
+			controller.setMasterbar,
+			controller.signupForm,
+			makeLayout,
+			clientRender
+		);
+	} else {
+		page(
+			'/jetpack/connect/authorize/:localeOrInterval?',
+			controller.maybeOnboard,
+			controller.redirectWithoutLocaleIfLoggedIn,
+			controller.setMasterbar,
+			controller.authorizeForm,
+			makeLayout,
+			clientRender
+		);
+
+		page(
+			'/jetpack/connect/authorize/:interval/:locale',
+			controller.maybeOnboard,
+			controller.redirectWithoutLocaleIfLoggedIn,
+			controller.setMasterbar,
+			controller.authorizeForm,
+			makeLayout,
+			clientRender
+		);
+	}
 
 	page(
 		'/jetpack/connect/store/:interval(yearly|monthly)?',
@@ -81,7 +114,9 @@ export default function() {
 
 	page(
 		'/jetpack/connect/:locale?',
-		controller.redirectWithoutLocaleifLoggedIn,
+		controller.redirectWithoutLocaleIfLoggedIn,
+		controller.persistMobileAppFlow,
+		controller.setMasterbar,
 		controller.connect,
 		makeLayout,
 		clientRender

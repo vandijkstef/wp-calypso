@@ -8,7 +8,7 @@
 
 	.gridicons-chevron-down {
 		align-self: center;
-		color: lighten( $gray, 10% );
+		color: $gray-lighten-10;
 		flex-grow: 0;
 		flex-shrink: 0;
 		margin-right: 16px;
@@ -18,7 +18,7 @@
 
 .sites-dropdown__wrapper {
 	background: $white;
-	border: 1px solid lighten( $gray, 20% );
+	border: 1px solid $gray-lighten-20;
 	border-width: 1px;
 	border-radius: 4px;
 	margin: 0;
@@ -33,7 +33,7 @@
 	}
 
 	.has-multiple-sites &:hover {
-		border-color: lighten( $gray, 10% );
+		border-color: $gray-lighten-10;
 		border-bottom-width: 2px;
 	}
 }
@@ -52,13 +52,13 @@
 	}
 
 	.is-open & {
-		border-bottom: 1px solid lighten( $gray, 30% );
+		border-bottom: 1px solid $gray-lighten-30;
 	}
 
 	&:hover {
 		.gridicons-chevron-down,
 		.gridicons-chevron-up {
-			color: darken( $gray, 20% );
+			color: $gray-darken-20;
 		}
 	}
 }

@@ -1,14 +1,17 @@
 /** @format */
-
 /**
  * External dependencies
  */
+import config from 'config';
 import PropTypes from 'prop-types';
+import { addQueryArgs } from 'lib/route';
+import { head, includes, isEmpty, split } from 'lodash';
 
 export function authQueryTransformer( queryObject ) {
 	return {
 		// Required
 		clientId: parseInt( queryObject.client_id, 10 ),
+		homeUrl: queryObject.home_url,
 		nonce: queryObject._wp_nonce,
 		redirectUri: queryObject.redirect_uri,
 		scope: queryObject.scope,
@@ -18,30 +21,27 @@ export function authQueryTransformer( queryObject ) {
 
 		// Optional
 		// TODO: verify
+		authApproved: !! queryObject.auth_approved,
 		alreadyAuthorized: !! queryObject.already_authorized,
 		blogname: queryObject.blogname || null,
-		from: queryObject.from || null,
-		homeUrl: queryObject.home_url || null,
+		from: queryObject.from || '[unknown]',
 		jpVersion: queryObject.jp_version || null,
-		newUserStartedConnection: !! queryObject.new_user_started_connection,
 		partnerId: parseInt( queryObject.partner_id, 10 ) || null,
 		redirectAfterAuth: queryObject.redirect_after_auth || null,
 		siteIcon: queryObject.site_icon || null,
 		siteUrl: queryObject.site_url || null,
-		tracksUi: queryObject._ui || null,
-		tracksUt: queryObject._ut || null,
 		userEmail: queryObject.user_email || null,
 	};
 }
 
 export const authQueryPropTypes = PropTypes.shape( {
+	authApproved: PropTypes.bool,
 	alreadyAuthorized: PropTypes.bool,
 	blogname: PropTypes.string,
 	clientId: PropTypes.number.isRequired,
-	from: PropTypes.string,
-	homeUrl: PropTypes.string,
+	from: PropTypes.string.isRequired,
+	homeUrl: PropTypes.string.isRequired,
 	jpVersion: PropTypes.string,
-	newUserStartedConnection: PropTypes.bool,
 	nonce: PropTypes.string.isRequired,
 	partnerId: PropTypes.number,
 	redirectAfterAuth: PropTypes.string,
@@ -52,7 +52,29 @@ export const authQueryPropTypes = PropTypes.shape( {
 	siteIcon: PropTypes.string,
 	siteUrl: PropTypes.string,
 	state: PropTypes.string.isRequired,
-	tracksUi: PropTypes.string,
-	tracksUt: PropTypes.string,
 	userEmail: PropTypes.string,
 } );
+
+export function addCalypsoEnvQueryArg( url ) {
+	return addQueryArgs( { calypso_env: config( 'env_id' ) }, url );
+}
+
+/**
+ * Convert an auth query scope to a role
+ *
+ * Auth queries include a scope like `role:hash`. This function will attempt to extract the role
+ * when provided with a scope.
+ *
+ * @param  {string}  scope From authorization query
+ * @return {?string}       Role parsed from scope if found
+ */
+export function getRoleFromScope( scope ) {
+	if ( ! includes( scope, ':' ) ) {
+		return null;
+	}
+	const role = head( split( scope, ':', 1 ) );
+	if ( ! isEmpty( role ) ) {
+		return role;
+	}
+	return null;
+}

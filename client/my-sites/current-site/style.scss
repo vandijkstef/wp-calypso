@@ -15,7 +15,7 @@
 		}
 
 		.site__title {
-			color: darken( $gray, 20% );
+			color: $gray-darken-20;
 			line-height: 35px;
 		}
 
@@ -147,18 +147,5 @@
 
 	.notice__icon-wrapper {
 		border-radius: 0;
-	}
-}
-
-.site__notices .current-site__notice-upsell {
-	background-color: $alert-green;
-
-	.notice__content {
-		padding-left: 0;
-	}
-
-	.notice__action {
-		color: $white;
-		text-transform: uppercase;
 	}
 }

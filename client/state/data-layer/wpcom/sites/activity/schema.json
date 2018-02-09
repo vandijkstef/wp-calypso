@@ -54,8 +54,14 @@
 						"wpcom_user_id": { "type": "integer" }
 					}
 				},
+				"content": { "type": "object" },
+				"formatted_content": {
+					"name": { "type": "string" },
+					"content": { "type": "object" }
+				},
 				"generator": { "type": "object" },
 				"gridicon": { "type": "string" },
+				"is_discarded": { "type": "boolean" },
 				"is_rewindable": { "type": "boolean" },
 				"rewind_id": { "type": [ "null", "string" ] },
 				"items": {

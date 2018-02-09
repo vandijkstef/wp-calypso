@@ -3,9 +3,11 @@
 /**
  * External dependencies
  */
-import React, { Fragment } from 'react';
-import { localize } from 'i18n-calypso';
+import React from 'react';
+import page from 'page';
 import { connect } from 'react-redux';
+import { get } from 'lodash';
+import { localize } from 'i18n-calypso';
 
 /**
  * Internal dependencies
@@ -14,100 +16,88 @@ import Button from 'components/button';
 import Card from 'components/card';
 import DocumentHead from 'components/data/document-head';
 import FormattedHeader from 'components/formatted-header';
-import FormFieldset from 'components/forms/form-fieldset';
-import FormLabel from 'components/forms/form-label';
-import FormTextarea from 'components/forms/form-textarea';
-import FormTextInput from 'components/forms/form-text-input';
-import QuerySiteSettings from 'components/data/query-site-settings';
-import { saveSiteSettings } from 'state/site-settings/actions';
-import { getSiteSettings, isRequestingSiteSettings } from 'state/site-settings/selectors';
-import { getSelectedSiteId } from 'state/ui/selectors';
+import JetpackOnboardingDisclaimer from '../disclaimer';
+import PageViewTracker from 'lib/analytics/page-view-tracker';
+import SiteTitle from 'components/site-title';
+import { JETPACK_ONBOARDING_STEPS as STEPS } from '../constants';
+import { saveJetpackOnboardingSettings } from 'state/jetpack-onboarding/actions';
 
 class JetpackOnboardingSiteTitleStep extends React.PureComponent {
 	state = {
-		description: '',
-		title: '',
+		blogname: get( this.props.settings, 'siteTitle' ),
+		blogdescription: get( this.props.settings, 'siteDescription' ),
 	};
 
 	componentWillReceiveProps( nextProps ) {
-		if ( this.props.isRequesting && ! nextProps.isRequesting ) {
+		if ( this.props.isRequestingSettings && ! nextProps.isRequestingSettings ) {
 			this.setState( {
-				title: nextProps.siteSettings.blogname,
-				description: nextProps.siteSettings.blogdescription,
+				blogname: nextProps.settings.siteTitle,
+				blogdescription: nextProps.settings.siteDescription,
 			} );
 		}
 	}
 
-	setDescription = event => {
-		this.setState( { description: event.target.value } );
+	handleChange = ( { blogname, blogdescription } ) => {
+		this.setState( { blogname, blogdescription } );
 	};
 
-	setTitle = event => {
-		this.setState( { title: event.target.value } );
-	};
+	handleSubmit = event => {
+		event.preventDefault();
+		if ( this.props.isRequestingSettings ) {
+			return;
+		}
 
-	submit = () => {
-		this.props.saveSiteSettings( this.props.siteId, {
-			blogname: this.state.title,
-			blogdescription: this.state.description,
+		this.props.saveJetpackOnboardingSettings( this.props.siteId, {
+			siteTitle: this.state.blogname,
+			siteDescription: this.state.blogdescription,
 		} );
+		page( this.props.getForwardUrl() );
 	};
 
 	render() {
-		const { isRequesting, siteId, translate } = this.props;
+		const { isRequestingSettings, translate } = this.props;
 		const headerText = translate( "Let's get started." );
 		const subHeaderText = translate(
 			'First up, what would you like to name your site and have as its public description?'
 		);
 
 		return (
-			<Fragment>
-				<QuerySiteSettings siteId={ siteId } />
+			<div className="steps__main">
 				<DocumentHead title={ translate( 'Site Title ‹ Jetpack Onboarding' ) } />
+				<PageViewTracker
+					path={ '/jetpack/onboarding/' + STEPS.SITE_TITLE + '/:site' }
+					title="Site Title ‹ Jetpack Onboarding"
+				/>
+
 				<FormattedHeader headerText={ headerText } subHeaderText={ subHeaderText } />
 
 				<Card className="steps__form">
-					<form>
-						<FormFieldset>
-							<FormLabel htmlFor="title">{ translate( 'Site Title' ) }</FormLabel>
-							<FormTextInput
-								autoFocus
-								disabled={ isRequesting }
-								id="title"
-								onChange={ this.setTitle }
-								value={ this.state.title }
-							/>
-						</FormFieldset>
+					<form onSubmit={ this.handleSubmit }>
+						<SiteTitle
+							autoFocusBlogname
+							blogname={ this.state.blogname || '' }
+							blogdescription={ this.state.blogdescription || '' }
+							disabled={ isRequestingSettings }
+							isBlognameRequired
+							onChange={ this.handleChange }
+						/>
 
-						<FormFieldset>
-							<FormLabel htmlFor="description">{ translate( 'Site Description' ) }</FormLabel>
-							<FormTextarea
-								disabled={ isRequesting }
-								id="description"
-								onChange={ this.setDescription }
-								value={ this.state.description }
-							/>
-						</FormFieldset>
-
-						<Button href={ this.props.getForwardUrl() } onClick={ this.submit } primary>
+						<Button
+							disabled={ isRequestingSettings || ! this.state.blogname }
+							primary
+							type="submit"
+						>
 							{ translate( 'Next Step' ) }
 						</Button>
 					</form>
 				</Card>
-			</Fragment>
+
+				<JetpackOnboardingDisclaimer />
+			</div>
 		);
 	}
 }
 
-export default connect(
-	state => {
-		const siteId = getSelectedSiteId( state );
-
-		return {
-			isRequesting: isRequestingSiteSettings( state, siteId ),
-			siteId,
-			siteSettings: getSiteSettings( state, siteId ),
-		};
-	},
-	{ saveSiteSettings }
-)( localize( JetpackOnboardingSiteTitleStep ) );
+export default connect( null, { saveJetpackOnboardingSettings } )(
+	localize( JetpackOnboardingSiteTitleStep )
+);

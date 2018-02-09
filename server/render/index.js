@@ -3,6 +3,7 @@
 /**
  * External dependencies
  */
+import React from 'react';
 import ReactDomServer from 'react-dom/server';
 import superagent from 'superagent';
 import Lru from 'lru';
@@ -37,19 +38,41 @@ const markupCache = new Lru( {
 function bumpStat( group, name ) {
 	const statUrl = `http://pixel.wp.com/g.gif?v=wpcom-no-pv&x_${ group }=${ name }&t=${ Math.random() }`;
 
-	if ( config( 'env' ) === 'production' ) {
+	if ( process.env.NODE_ENV === 'production' ) {
 		superagent.get( statUrl ).end();
 	}
 }
 
 /**
-* Render and cache supplied React element to a markup string.
-* Cache is keyed by stringified element by default.
-*
-* @param {object} element - React element to be rendered to html
-* @param {string} key - (optional) custom key
-* @return {string} The rendered Layout
-*/
+ * Render JSX template to a markup string.
+ *
+ * @param {string} view - JSX template to render (basename)
+ * @param {object} props - Properties which got passed to the JSX template
+ * @return {string} Rendered markup
+ */
+export function renderJsx( view, props ) {
+	const requireComponent = require.context( '../../client/document', true, /\.jsx$/ );
+	const component = requireComponent( './' + view + '.jsx' ).default;
+	const doctype = `<!DOCTYPE html><!--
+	<3
+	             _
+	    ___ __ _| |_   _ _ __  ___  ___
+	   / __/ _\` | | | | | '_ \\/ __|/ _ \\
+	  | (_| (_| | | |_| | |_) \\__ \\ (_) |
+	   \\___\\__,_|_|\\__, | .__/|___/\\___/
+	               |___/|_|
+-->`;
+	return doctype + ReactDomServer.renderToStaticMarkup( React.createElement( component, props ) );
+}
+
+/**
+ * Render and cache supplied React element to a markup string.
+ * Cache is keyed by stringified element by default.
+ *
+ * @param {object} element - React element to be rendered to html
+ * @param {string} key - (optional) custom key
+ * @return {string} The rendered Layout
+ */
 export function render( element, key = JSON.stringify( element ) ) {
 	try {
 		const startTime = Date.now();
@@ -72,7 +95,7 @@ export function render( element, key = JSON.stringify( element ) ) {
 
 		return renderedLayout;
 	} catch ( ex ) {
-		if ( config( 'env' ) === 'development' ) {
+		if ( process.env.NODE_ENV === 'development' ) {
 			throw ex;
 		}
 	}
@@ -138,14 +161,15 @@ export function serverRender( req, res ) {
 
 	if ( config.isEnabled( 'desktop' ) ) {
 		res.render( 'desktop', context );
-	} else {
-		res.render( 'index', context );
+		return;
 	}
+
+	res.send( renderJsx( 'index', context ) );
 }
 
 export function serverRenderError( err, req, res, next ) {
 	if ( err ) {
-		if ( config( 'env' ) !== 'production' ) {
+		if ( process.env.NODE_ENV !== 'production' ) {
 			console.error( err );
 		}
 		req.error = err;

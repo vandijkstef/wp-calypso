@@ -5,6 +5,7 @@
  */
 
 import {
+	MASTERBAR_TOGGLE_VISIBILITY,
 	SELECTED_SITE_SET,
 	SECTION_SET,
 	PREVIEW_IS_SHOWING,
@@ -12,6 +13,7 @@ import {
 } from 'state/action-types';
 import { combineReducers, createReducer } from 'state/utils';
 import actionLog from './action-log/reducer';
+import comments from './comments/reducer';
 import dropZone from './drop-zone/reducer';
 import editor from './editor/reducer';
 import guidedTour from './guided-tours/reducer';
@@ -20,7 +22,6 @@ import layoutFocus from './layout-focus/reducer';
 import mediaModal from './media-modal/reducer';
 import npsSurveyNotice from './nps-survey-notice/reducer';
 import oauth2Clients from './oauth2-clients/reducer';
-import olark from './olark/reducer';
 import postTypeList from './post-type-list/reducer';
 import preview from './preview/reducer';
 import reader from './reader/reducer';
@@ -90,8 +91,12 @@ export const isNotificationsOpen = function( state = false, { type } ) {
 	return state;
 };
 
+export const masterbarVisibility = ( state = true, { type, isVisible } ) =>
+	type === MASTERBAR_TOGGLE_VISIBILITY ? isVisible : state;
+
 const reducer = combineReducers( {
 	actionLog,
+	comments,
 	dropZone,
 	editor,
 	guidedTour,
@@ -101,10 +106,10 @@ const reducer = combineReducers( {
 	isPreviewShowing,
 	language,
 	layoutFocus,
+	masterbarVisibility,
 	mediaModal,
 	npsSurveyNotice,
 	oauth2Clients,
-	olark,
 	postTypeList,
 	preview,
 	reader,

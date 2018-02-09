@@ -11,7 +11,7 @@ import { localize } from 'i18n-calypso';
 import { getSelectedSiteId } from 'state/ui/selectors';
 import isSiteOnPaidPlan from 'state/selectors/is-site-on-paid-plan';
 import classNames from 'classnames';
-import { endsWith, includes, times } from 'lodash';
+import { endsWith, get, includes, times } from 'lodash';
 
 /**
  * Internal dependencies
@@ -26,9 +26,10 @@ import Card from 'components/card';
 import { getTld } from 'lib/domains';
 import { domainAvailability } from 'lib/domains/constants';
 import { currentUserHasFlag } from 'state/current-user/selectors';
-import { TRANSFER_IN } from 'state/current-user/constants';
+import { TRANSFER_IN_NUX } from 'state/current-user/constants';
 import { getDesignType } from 'state/signup/steps/design-type/selectors';
 import { DESIGN_TYPE_STORE } from 'signup/constants';
+import { abtest } from 'lib/abtest';
 
 class DomainSearchResults extends React.Component {
 	static propTypes = {
@@ -41,6 +42,7 @@ class DomainSearchResults extends React.Component {
 		selectedSite: PropTypes.object,
 		availableDomain: PropTypes.oneOfType( [ PropTypes.object, PropTypes.bool ] ),
 		suggestions: PropTypes.array,
+		isLoadingSuggestions: PropTypes.bool.isRequired,
 		placeholderQuantity: PropTypes.number.isRequired,
 		buttonLabel: PropTypes.string,
 		mappingSuggestionLabel: PropTypes.string,
@@ -60,7 +62,7 @@ class DomainSearchResults extends React.Component {
 			availableDomain,
 			lastDomainIsTransferrable,
 			lastDomainStatus,
-			lastDomainSearched: domain,
+			lastDomainSearched,
 			translate,
 		} = this.props;
 		const availabilityElementClasses = classNames( {
@@ -70,9 +72,13 @@ class DomainSearchResults extends React.Component {
 		const suggestions = this.props.suggestions || [];
 		const { MAPPABLE, MAPPED, TLD_NOT_SUPPORTED, TRANSFERRABLE, UNKNOWN } = domainAvailability;
 
+		const domain = get( availableDomain, 'domain_name', lastDomainSearched );
+		const testGroup = abtest( 'domainSuggestionTestV5' );
+		const showExactMatch = 'group_0' === testGroup;
+
 		let availabilityElement, domainSuggestionElement, offer;
 
-		if ( availableDomain ) {
+		if ( availableDomain && showExactMatch ) {
 			// should use real notice component or custom class
 			availabilityElement = (
 				<Notice status="is-success" showDismiss={ false }>
@@ -136,8 +142,7 @@ class DomainSearchResults extends React.Component {
 			if ( this.props.offerUnavailableOption ) {
 				if (
 					this.props.siteDesignType !== DESIGN_TYPE_STORE &&
-					this.props.transferInAllowed &&
-					! this.props.isSignupStep &&
+					( ! this.props.isSignupStep || this.props.transferInNuxAllowed ) &&
 					lastDomainIsTransferrable
 				) {
 					availabilityElement = (
@@ -189,10 +194,6 @@ class DomainSearchResults extends React.Component {
 		this.props.onAddMapping( this.props.lastDomainSearched );
 	};
 
-	handleAddTransfer = () => {
-		this.props.onAddTransfer( this.props.lastDomainSearched );
-	};
-
 	renderPlaceholders() {
 		return times( this.props.placeholderQuantity, function( n ) {
 			return <DomainSuggestion.Placeholder key={ 'suggestion-' + n } />;
@@ -203,7 +204,7 @@ class DomainSearchResults extends React.Component {
 		let suggestionElements;
 		let unavailableOffer;
 
-		if ( this.props.suggestions.length ) {
+		if ( ! this.props.isLoadingSuggestions && this.props.suggestions ) {
 			suggestionElements = this.props.suggestions.map( function( suggestion, i ) {
 				if ( suggestion.is_placeholder ) {
 					return <DomainSuggestion.Placeholder key={ 'suggestion-' + i } />;
@@ -240,7 +241,7 @@ class DomainSearchResults extends React.Component {
 					/>
 				);
 
-				if ( this.props.transferInAllowed && ! this.props.isSignupStep ) {
+				if ( ! this.props.isSignupStep || this.props.transferInNuxAllowed ) {
 					unavailableOffer = (
 						<DomainTransferSuggestion
 							onButtonClick={ this.props.onClickTransfer }
@@ -275,7 +276,7 @@ const mapStateToProps = state => {
 	const selectedSiteId = getSelectedSiteId( state );
 	return {
 		isSiteOnPaidPlan: isSiteOnPaidPlan( state, selectedSiteId ),
-		transferInAllowed: currentUserHasFlag( state, TRANSFER_IN ),
+		transferInNuxAllowed: currentUserHasFlag( state, TRANSFER_IN_NUX ),
 		siteDesignType: getDesignType( state ),
 	};
 };

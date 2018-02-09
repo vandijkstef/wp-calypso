@@ -15,6 +15,7 @@ describe( 'reducer', () => {
 	test( 'should include expected keys in return value', () => {
 		expect( reducer( undefined, {} ) ).to.have.keys( [
 			'actionLog',
+			'comments',
 			'dropZone',
 			'editor',
 			'guidedTour',
@@ -24,10 +25,10 @@ describe( 'reducer', () => {
 			'isPreviewShowing',
 			'layoutFocus',
 			'language',
+			'masterbarVisibility',
 			'mediaModal',
 			'npsSurveyNotice',
 			'oauth2Clients',
-			'olark',
 			'postTypeList',
 			'preview',
 			'route',

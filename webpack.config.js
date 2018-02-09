@@ -1,7 +1,6 @@
+/** @format */
 /**
- * **** WARNING: No ES6 modules here. Not transpiled! ****
- *
- * @format
+ **** WARNING: No ES6 modules here. Not transpiled! ****
  */
 
 /**
@@ -17,6 +16,7 @@ const webpack = require( 'webpack' );
 const NameAllModulesPlugin = require( 'name-all-modules-plugin' );
 const AssetsPlugin = require( 'assets-webpack-plugin' );
 const UglifyJsPlugin = require( 'uglifyjs-webpack-plugin' );
+const prism = require( 'prismjs' );
 
 /**
  * Internal dependencies
@@ -33,6 +33,18 @@ const isDevelopment = bundleEnv === 'development';
 const shouldMinify = process.env.hasOwnProperty( 'MINIFY_JS' )
 	? process.env.MINIFY_JS === 'true'
 	: ! isDevelopment;
+
+// load in the babel config from babelrc and disable commonjs transform
+// this enables static analysis from webpack including treeshaking
+// also disable add-module-exports. TODO: remove add-module-exports from babelrc. requires fixing tests
+const babelConfig = JSON.parse( fs.readFileSync( './.babelrc', { encoding: 'utf8' } ) );
+const babelPresetEnv = _.find( babelConfig.presets, preset => preset[ 0 ] === 'env' );
+babelPresetEnv[ 1 ].modules = false;
+_.remove( babelConfig.plugins, elem => elem === 'add-module-exports' );
+
+// remove the babel-lodash-es plugin from env.test -- it's needed only for Jest tests.
+// The Webpack-using NODE_ENV=test build doesn't need it, as there is a special loader for that.
+_.remove( babelConfig.env.test.plugins, elem => /babel-lodash-es/.test( elem ) );
 
 /**
  * This function scans the /client/extensions directory in order to generate a map that looks like this:
@@ -61,10 +73,12 @@ function getAliasesForExtensions() {
 
 const babelLoader = {
 	loader: 'babel-loader',
-	options: {
+	options: Object.assign( {}, babelConfig, {
+		babelrc: false,
 		cacheDirectory: path.join( __dirname, 'build', '.babel-client-cache' ),
 		cacheIdentifier: cacheIdentifier,
 		plugins: [
+			...babelConfig.plugins,
 			[
 				path.join(
 					__dirname,
@@ -75,14 +89,15 @@ const babelLoader = {
 				),
 				{ async: config.isEnabled( 'code-splitting' ) },
 			],
+			'inline-imports.js',
 		],
-	},
+	} ),
 };
 
 const webpackConfig = {
 	bail: ! isDevelopment,
 	entry: {},
-	devtool: 'false',
+	devtool: isDevelopment ? '#eval' : process.env.SOURCEMAP || false, // in production builds you can specify a source-map via env var
 	output: {
 		path: path.join( __dirname, 'public' ),
 		publicPath: '/calypso/',
@@ -101,14 +116,21 @@ const webpackConfig = {
 				loader: [ 'happypack/loader' ],
 			},
 			{
+				test: /node_modules[\/\\](redux-form|react-redux)[\/\\]es/,
+				loader: 'babel-loader',
+				options: {
+					babelrc: false,
+					plugins: [ path.join( __dirname, 'server', 'bundler', 'babel', 'babel-lodash-es' ) ],
+				},
+			},
+			{
 				test: /extensions[\/\\]index/,
 				exclude: path.join( __dirname, 'node_modules' ),
 				loader: path.join( __dirname, 'server', 'bundler', 'extensions-loader' ),
 			},
 			{
-				test: /sections.js$/,
-				exclude: path.join( __dirname, 'node_modules' ),
-				loader: path.join( __dirname, 'server', 'bundler', 'loader' ),
+				include: path.join( __dirname, 'client/sections.js' ),
+				loader: path.join( __dirname, 'server', 'bundler', 'sections-loader' ),
 			},
 			{
 				test: /\.html$/,
@@ -121,6 +143,22 @@ const webpackConfig = {
 			{
 				test: /node_modules[\/\\]tinymce/,
 				use: 'imports-loader?this=>window',
+			},
+			{
+				test: /README\.md$/,
+				use: [
+					{ loader: 'html-loader' },
+					{
+						loader: 'markdown-loader',
+						options: {
+							sanitize: true,
+							highlight: function( code, language ) {
+								const syntax = prism.languages[ language ];
+								return syntax ? prism.highlight( code, syntax ) : code;
+							},
+						},
+					},
+				],
 			},
 		],
 	},
@@ -143,6 +181,7 @@ const webpackConfig = {
 		__filename: 'mock',
 		__dirname: 'mock',
 		fs: 'empty',
+		crypto: false,
 	},
 	plugins: _.compact( [
 		new webpack.DefinePlugin( {
@@ -164,6 +203,7 @@ const webpackConfig = {
 			if ( chunk.name ) {
 				return chunk.name;
 			}
+
 			return chunk.modules.map( m => path.relative( m.context, m.request ) ).join( '_' );
 		} ),
 		new NameAllModulesPlugin(),
@@ -171,6 +211,7 @@ const webpackConfig = {
 			filename: 'assets.json',
 			path: path.join( __dirname, 'server', 'bundler' ),
 		} ),
+		process.env.NODE_ENV === 'production' && new webpack.optimize.ModuleConcatenationPlugin(),
 	] ),
 	externals: [ 'electron' ],
 };
@@ -230,10 +271,8 @@ if ( isDevelopment ) {
 		path.join( __dirname, 'client', 'boot', 'app' ),
 	];
 	webpackConfig.devServer = { hot: true, inline: true };
-	webpackConfig.devtool = '#eval';
 } else {
 	webpackConfig.entry.build = path.join( __dirname, 'client', 'boot', 'app' );
-	webpackConfig.devtool = false;
 }
 
 if ( ! config.isEnabled( 'desktop' ) ) {
@@ -254,10 +293,10 @@ if ( config.isEnabled( 'webpack/persistent-caching' ) ) {
 if ( shouldMinify ) {
 	webpackConfig.plugins.push(
 		new UglifyJsPlugin( {
-			cache: true,
+			cache: 'docker' !== process.env.CONTAINER,
 			parallel: true,
 			uglifyOptions: { ecma: 5 },
-			sourceMap: false,
+			sourceMap: Boolean( process.env.SOURCEMAP ),
 		} )
 	);
 }

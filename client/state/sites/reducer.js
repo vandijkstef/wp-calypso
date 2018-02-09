@@ -39,7 +39,7 @@ import {
 	THEME_ACTIVATE_SUCCESS,
 	WORDADS_SITE_APPROVE_REQUEST_SUCCESS,
 } from 'state/action-types';
-import { sitesSchema } from './schema';
+import { sitesSchema, hasAllSitesListSchema } from './schema';
 import { combineReducers, createReducer, keyedReducer } from 'state/utils';
 
 /**
@@ -56,7 +56,10 @@ const VALID_SITE_KEYS = Object.keys( sitesSchema.patternProperties[ '^\\d+$' ].p
  * @param  {Object} action Action payload
  * @return {Object}        Updated state
  */
-export function items( state = {}, action ) {
+export function items( state = null, action ) {
+	if ( state === null && action.type !== SITE_RECEIVE && action.type !== SITES_RECEIVE ) {
+		return null;
+	}
 	switch ( action.type ) {
 		case WORDADS_SITE_APPROVE_REQUEST_SUCCESS:
 			const prevSite = state[ action.siteId ];
@@ -93,12 +96,10 @@ export function items( state = {}, action ) {
 					memo[ site.ID ] = transformedSite;
 					return memo;
 				},
-				initialNextState
+				initialNextState || {}
 			);
 
 		case SITE_DELETE_RECEIVE:
-			return omit( state, action.siteId );
-
 		case JETPACK_DISCONNECT_RECEIVE:
 			return omit( state, action.siteId );
 
@@ -267,6 +268,21 @@ export const deleting = keyedReducer(
 	)
 );
 
+/**
+ * Tracks whether all sites have been fetched.
+ *
+ * @param  {Object} state  Current state
+ * @param  {Object} action Action object
+ * @return {Object}        Updated state
+ */
+export const hasAllSitesList = createReducer(
+	false,
+	{
+		[ SITES_RECEIVE ]: () => true,
+	},
+	hasAllSitesListSchema
+);
+
 export default combineReducers( {
 	connection,
 	deleting,
@@ -282,4 +298,5 @@ export default combineReducers( {
 	requesting,
 	sharingButtons,
 	blogStickers,
+	hasAllSitesList,
 } );

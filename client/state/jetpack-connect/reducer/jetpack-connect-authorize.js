@@ -2,29 +2,29 @@
 /**
  * External dependencis
  */
-import { get, includes, isEmpty, omit } from 'lodash';
+import { get, isEmpty, omit } from 'lodash';
 
 /**
  * Internal dependencies
  */
+import { isStale } from '../utils';
+import { isValidStateWithSchema } from 'state/utils';
+import { JETPACK_CONNECT_AUTHORIZE_TTL } from '../constants';
+import { jetpackConnectAuthorizeSchema } from './schema';
 import {
-	JETPACK_CONNECT_COMPLETE_FLOW,
-	JETPACK_CONNECT_QUERY_SET,
+	DESERIALIZE,
 	JETPACK_CONNECT_AUTHORIZE,
 	JETPACK_CONNECT_AUTHORIZE_LOGIN_COMPLETE,
 	JETPACK_CONNECT_AUTHORIZE_RECEIVE,
 	JETPACK_CONNECT_AUTHORIZE_RECEIVE_SITE_LIST,
+	JETPACK_CONNECT_COMPLETE_FLOW,
 	JETPACK_CONNECT_CREATE_ACCOUNT,
 	JETPACK_CONNECT_CREATE_ACCOUNT_RECEIVE,
-	JETPACK_CONNECT_REDIRECT_WP_ADMIN,
-	JETPACK_CONNECT_REDIRECT_XMLRPC_ERROR_FALLBACK_URL,
+	JETPACK_CONNECT_QUERY_SET,
 	JETPACK_CONNECT_USER_ALREADY_CONNECTED,
-	SITE_REQUEST_FAILURE,
 	SERIALIZE,
-	DESERIALIZE,
+	SITE_REQUEST_FAILURE,
 } from 'state/action-types';
-import { isStale } from '../utils';
-import { JETPACK_CONNECT_AUTHORIZE_TTL } from '../constants';
 
 export default function jetpackConnectAuthorize( state = {}, action ) {
 	switch ( action.type ) {
@@ -33,8 +33,6 @@ export default function jetpackConnectAuthorize( state = {}, action ) {
 				isAuthorizing: true,
 				authorizeSuccess: false,
 				authorizeError: false,
-				isRedirectingToWpAdmin: false,
-				autoAuthorize: false,
 			} );
 
 		case JETPACK_CONNECT_AUTHORIZE_RECEIVE:
@@ -43,7 +41,6 @@ export default function jetpackConnectAuthorize( state = {}, action ) {
 				return Object.assign( {}, state, {
 					authorizeError: false,
 					authorizeSuccess: true,
-					autoAuthorize: false,
 					plansUrl: plans_url,
 					siteReceived: false,
 				} );
@@ -52,7 +49,6 @@ export default function jetpackConnectAuthorize( state = {}, action ) {
 				isAuthorizing: false,
 				authorizeError: action.error,
 				authorizeSuccess: false,
-				autoAuthorize: false,
 			} );
 
 		case JETPACK_CONNECT_AUTHORIZE_LOGIN_COMPLETE:
@@ -65,18 +61,13 @@ export default function jetpackConnectAuthorize( state = {}, action ) {
 			} );
 
 		case JETPACK_CONNECT_QUERY_SET:
-			const autoAuthorize = includes(
-				[ 'woocommerce-services-auto-authorize', 'woocommerce-setup-wizard' ],
-				action.from
-			);
 			return {
 				authorizeError: false,
 				authorizeSuccess: false,
-				autoAuthorize,
-				isAuthorizing: false,
-				timestamp: Date.now(),
-				userAlreadyConnected: false,
 				clientId: action.clientId,
+				isAuthorizing: false,
+				timestamp: action.timestamp,
+				userAlreadyConnected: false,
 			};
 
 		case JETPACK_CONNECT_CREATE_ACCOUNT:
@@ -84,7 +75,6 @@ export default function jetpackConnectAuthorize( state = {}, action ) {
 				isAuthorizing: true,
 				authorizeSuccess: false,
 				authorizeError: false,
-				autoAuthorize: true,
 			} );
 
 		case JETPACK_CONNECT_CREATE_ACCOUNT_RECEIVE:
@@ -93,14 +83,12 @@ export default function jetpackConnectAuthorize( state = {}, action ) {
 					isAuthorizing: false,
 					authorizeSuccess: false,
 					authorizeError: true,
-					autoAuthorize: false,
 				} );
 			}
 			return Object.assign( {}, state, {
 				isAuthorizing: true,
 				authorizeSuccess: false,
 				authorizeError: false,
-				autoAuthorize: true,
 				userData: action.userData,
 				bearerToken: get( action, [ 'data', 'bearer_token' ] ),
 			} );
@@ -114,17 +102,14 @@ export default function jetpackConnectAuthorize( state = {}, action ) {
 		case JETPACK_CONNECT_USER_ALREADY_CONNECTED:
 			return Object.assign( {}, state, { userAlreadyConnected: true } );
 
-		case JETPACK_CONNECT_REDIRECT_XMLRPC_ERROR_FALLBACK_URL:
-			return Object.assign( {}, state, { isRedirectingToWpAdmin: true } );
-
-		case JETPACK_CONNECT_REDIRECT_WP_ADMIN:
-			return Object.assign( {}, state, { isRedirectingToWpAdmin: true } );
-
 		case JETPACK_CONNECT_COMPLETE_FLOW:
 			return {};
 
 		case DESERIALIZE:
-			return ! isStale( state.timestamp, JETPACK_CONNECT_AUTHORIZE_TTL ) ? state : {};
+			return isValidStateWithSchema( state, jetpackConnectAuthorizeSchema ) &&
+				! isStale( state.timestamp, JETPACK_CONNECT_AUTHORIZE_TTL )
+				? state
+				: {};
 
 		case SERIALIZE:
 			return state;

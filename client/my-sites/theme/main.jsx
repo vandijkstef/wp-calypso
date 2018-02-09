@@ -199,18 +199,25 @@ class ThemeSheet extends React.Component {
 		return null;
 	};
 
-	previewAction = () => {
+	previewAction = event => {
+		if ( event.altKey || event.ctrlKey || event.metaKey || event.shiftKey ) {
+			return;
+		}
+		event.preventDefault();
+
 		const { preview } = this.props.options;
 		this.props.setThemePreviewOptions( this.props.defaultOption, this.props.secondaryOption );
 		return preview.action( this.props.id );
 	};
 
-	renderPreviewButton = () => {
+	renderPreviewButton = demo_uri => {
 		return (
 			<a
 				className="theme__sheet-preview-link"
 				onClick={ this.previewAction }
 				data-tip-target="theme-sheet-preview"
+				href={ demo_uri }
+				rel="noopener noreferrer"
 			>
 				<span className="theme__sheet-preview-link-text">
 					{ i18n.translate( 'Open Live Demo', {
@@ -231,7 +238,7 @@ class ThemeSheet extends React.Component {
 		if ( demo_uri && ! retired ) {
 			return (
 				<div className="theme__sheet-screenshot is-active" onClick={ this.previewAction }>
-					{ isActive ? null : this.renderPreviewButton() }
+					{ isActive ? null : this.renderPreviewButton( demo_uri ) }
 					{ img }
 				</div>
 			);
@@ -535,12 +542,12 @@ class ThemeSheet extends React.Component {
 		const section = this.validateSection( this.props.section );
 		const { siteId, retired } = this.props;
 
-		const analyticsPath = `/theme/:slug${ section ? '/' + section : '' }${ siteId
-			? '/:site_id'
-			: '' }`;
-		const analyticsPageTitle = `Themes > Details Sheet${ section
-			? ' > ' + titlecase( section )
-			: '' }${ siteId ? ' > Site' : '' }`;
+		const analyticsPath = `/theme/:slug${ section ? '/' + section : '' }${
+			siteId ? '/:site_id' : ''
+		}`;
+		const analyticsPageTitle = `Themes > Details Sheet${
+			section ? ' > ' + titlecase( section ) : ''
+		}${ siteId ? ' > Site' : '' }`;
 
 		const { canonicalUrl, currentUserId, description, name: themeName } = this.props;
 		const title =

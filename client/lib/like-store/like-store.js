@@ -1,11 +1,8 @@
 /** @format */
-
 /**
  * External dependencies
  */
-
 import { assign, clone, isEqual } from 'lodash';
-import config from 'config';
 
 /**
  * Internal dependencies
@@ -13,7 +10,7 @@ import config from 'config';
 import Dispatcher from 'dispatcher';
 import Emitter from 'lib/mixins/emitter';
 import { action as FeedPostStoreActionType } from 'lib/feed-post-store/constants';
-import LikeActions from './actions';
+import { fetchLikes } from 'lib/like-store/actions';
 import { key } from './utils';
 
 var _likesForPost = {},
@@ -45,7 +42,7 @@ LikeStore = {
 			return likes.likes;
 		}
 
-		LikeActions.fetchLikes( siteId, postId );
+		fetchLikes( siteId, postId );
 
 		return null;
 	},
@@ -66,7 +63,7 @@ LikeStore = {
 			return likes.count;
 		}
 
-		LikeActions.fetchLikes( siteId, postId );
+		fetchLikes( siteId, postId );
 
 		return null;
 	},
@@ -87,7 +84,7 @@ LikeStore = {
 			return likes.i_like;
 		}
 
-		LikeActions.fetchLikes( siteId, postId );
+		fetchLikes( siteId, postId );
 
 		return null;
 	},
@@ -172,7 +169,7 @@ LikeStore = {
 	},
 };
 
-if ( config( 'env' ) === 'development' ) {
+if ( process.env.NODE_ENV === 'test' ) {
 	assign( LikeStore, {
 		// These bedlumps are for testing.
 		// Ideally, we'd pull these out with envify for prod

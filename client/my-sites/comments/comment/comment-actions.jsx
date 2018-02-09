@@ -14,6 +14,7 @@ import { get, includes, isEqual, isUndefined, noop } from 'lodash';
  * Internal dependencies
  */
 import Button from 'components/button';
+import scrollTo from 'lib/scroll-to';
 import { getMinimumComment } from 'my-sites/comments/comment/utils';
 import {
 	bumpStat,
@@ -39,14 +40,16 @@ const commentActions = {
 
 export class CommentActions extends Component {
 	static propTypes = {
-		canModerateComment: PropTypes.bool,
 		siteId: PropTypes.number,
 		postId: PropTypes.number,
 		commentId: PropTypes.number,
+		canModerateComment: PropTypes.bool,
+		commentsListQuery: PropTypes.object,
+		getCommentOffsetTop: PropTypes.func,
+		redirect: PropTypes.func,
 		toggleEditMode: PropTypes.func,
 		toggleReply: PropTypes.func,
 		updateLastUndo: PropTypes.func,
-		redirect: PropTypes.func,
 	};
 
 	static defaultProps = {
@@ -139,6 +142,11 @@ export class CommentActions extends Component {
 
 	toggleApproved = () => this.setStatus( this.props.commentIsApproved ? 'unapproved' : 'approved' );
 
+	toggleEditMode = () => {
+		this.props.toggleEditMode();
+		scrollTo( { x: 0, y: this.props.getCommentOffsetTop() } );
+	};
+
 	toggleLike = () => {
 		const { commentIsLiked, commentStatus, like, unlike } = this.props;
 
@@ -160,7 +168,6 @@ export class CommentActions extends Component {
 			canModerateComment,
 			commentIsApproved,
 			commentIsLiked,
-			toggleEditMode,
 			toggleReply,
 			translate,
 		} = this.props;
@@ -240,7 +247,7 @@ export class CommentActions extends Component {
 					<Button
 						borderless
 						className="comment__action comment__action-pencil"
-						onClick={ toggleEditMode }
+						onClick={ this.toggleEditMode }
 						tabIndex="0"
 						disabled={ ! canModerateComment }
 					>
@@ -279,7 +286,7 @@ const mapStateToProps = ( state, { siteId, commentId } ) => {
 	};
 };
 
-const mapDispatchToProps = ( dispatch, { siteId, postId, commentId } ) => ( {
+const mapDispatchToProps = ( dispatch, { siteId, postId, commentId, commentsListQuery } ) => ( {
 	changeStatus: ( status, analytics = { alsoUnlike: false, isUndo: false } ) =>
 		dispatch(
 			withAnalytics(
@@ -292,7 +299,7 @@ const mapDispatchToProps = ( dispatch, { siteId, postId, commentId } ) => ( {
 					} ),
 					bumpStat( 'calypso_comment_management', 'comment_status_changed_to_' + status )
 				),
-				changeCommentStatus( siteId, postId, commentId, status )
+				changeCommentStatus( siteId, postId, commentId, status, commentsListQuery )
 			)
 		),
 	deletePermanently: () =>
@@ -302,7 +309,7 @@ const mapDispatchToProps = ( dispatch, { siteId, postId, commentId } ) => ( {
 					recordTracksEvent( 'calypso_comment_management_delete' ),
 					bumpStat( 'calypso_comment_management', 'comment_deleted' )
 				),
-				deleteComment( siteId, postId, commentId, { showSuccessNotice: true } )
+				deleteComment( siteId, postId, commentId, { showSuccessNotice: true }, commentsListQuery )
 			)
 		),
 	like: ( analytics = { alsoApprove: false } ) =>

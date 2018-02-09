@@ -6,12 +6,18 @@
 
 import thunkMiddleware from 'redux-thunk';
 import { createStore, applyMiddleware, compose } from 'redux';
-import { reducer as form } from 'redux-form';
+// import the reducer directly from a submodule to prevent bundling the whole Redux Form
+// library into the `build` chunk.
+// TODO: change this back to `from 'redux-form'` after upgrade to Webpack 4.0 and a version
+//       of Redux Form that uses the `sideEffects: false` flag
+import form from 'redux-form/es/reducer';
+import { mapValues } from 'lodash';
 
 /**
  * Internal dependencies
  */
 import { combineReducers } from 'state/utils';
+import actionLogger from './action-log';
 import activityLog from './activity-log/reducer';
 import analyticsTracking from './analytics/reducer';
 import navigationMiddleware from './navigation/middleware';
@@ -35,6 +41,9 @@ import domains from './domains/reducer';
 import geo from './geo/reducer';
 import googleAppsUsers from './google-apps-users/reducer';
 import help from './help/reducer';
+import i18n from './i18n/reducer';
+import invites from './invites/reducer';
+import inlineHelpSearchResults from './inline-help/reducer';
 import jetpackConnect from './jetpack-connect/reducer';
 import jetpackOnboarding from './jetpack-onboarding/reducer';
 import jetpack from './jetpack/reducer';
@@ -88,7 +97,12 @@ import config from 'config';
  */
 
 // Consolidate the extension reducers under 'extensions' for namespacing.
-const extensions = combineReducers( extensionsModule.reducers() );
+const extensions = combineReducers(
+	mapValues(
+		extensionsModule.reducers(),
+		reducer => ( reducer.default ? reducer.default : reducer )
+	)
+);
 
 const reducers = {
 	analyticsTracking,
@@ -114,6 +128,9 @@ const reducers = {
 	happinessEngineers,
 	happychat,
 	help,
+	i18n,
+	inlineHelpSearchResults,
+	invites,
 	jetpackConnect,
 	jetpackOnboarding,
 	jetpack,
@@ -198,11 +215,13 @@ export function createReduxStore( initialState = {} ) {
 			require( './routing/middleware.js' ).default,
 		isAudioSupported && require( './audio/middleware.js' ).default,
 		navigationMiddleware,
+		isBrowser && require( './comments/middleware.js' ).default,
 	].filter( Boolean );
 
 	const enhancers = [
 		isBrowser && window.app && window.app.isDebug && consoleDispatcher,
 		applyMiddleware( ...middlewares ),
+		isBrowser && window.app && window.app.isDebug && actionLogger,
 		isBrowser && window.devToolsExtension && window.devToolsExtension(),
 	].filter( Boolean );
 

@@ -10,9 +10,6 @@ import useNock from 'test/helpers/use-nock';
 import {
 	JETPACK_CONNECT_CONFIRM_JETPACK_STATUS,
 	JETPACK_CONNECT_DISMISS_URL_STATUS,
-	JETPACK_CONNECT_REDIRECT,
-	JETPACK_CONNECT_REDIRECT_WP_ADMIN,
-	JETPACK_CONNECT_REDIRECT_XMLRPC_ERROR_FALLBACK_URL,
 	JETPACK_CONNECT_AUTHORIZE,
 	JETPACK_CONNECT_AUTHORIZE_LOGIN_COMPLETE,
 	JETPACK_CONNECT_AUTHORIZE_RECEIVE,
@@ -53,87 +50,6 @@ describe( 'actions', () => {
 			expect( dismissUrl( url ) ).toEqual( {
 				type: JETPACK_CONNECT_DISMISS_URL_STATUS,
 				url: url,
-			} );
-		} );
-	} );
-
-	describe( '#goToRemoteAuth()', () => {
-		test( 'should dispatch redirect action when called', () => {
-			const spy = jest.fn();
-			const { goToRemoteAuth } = actions;
-			const url = 'http://example.com';
-
-			goToRemoteAuth( url )( spy );
-
-			expect( spy ).toHaveBeenCalledWith( {
-				type: JETPACK_CONNECT_REDIRECT,
-				url: url,
-			} );
-		} );
-	} );
-
-	describe( '#goToPluginInstall()', () => {
-		test( 'should dispatch redirect action when called', () => {
-			const spy = jest.fn();
-			const { goToPluginInstall } = actions;
-			const url = 'http://example.com';
-
-			goToPluginInstall( url )( spy );
-
-			expect( spy ).toHaveBeenCalledWith( {
-				type: JETPACK_CONNECT_REDIRECT,
-				url: url,
-			} );
-		} );
-	} );
-
-	describe( '#goToPluginActivation()', () => {
-		test( 'should dispatch redirect action when called', () => {
-			const spy = jest.fn();
-			const { goToPluginActivation } = actions;
-			const url = 'http://example.com';
-
-			goToPluginActivation( url )( spy );
-
-			expect( spy ).toHaveBeenCalledWith( {
-				type: JETPACK_CONNECT_REDIRECT,
-				url: url,
-			} );
-		} );
-	} );
-
-	describe( '#goBackToWpAdmin()', () => {
-		test( 'should dispatch redirect action when called', () => {
-			const spy = jest.fn();
-			const { goBackToWpAdmin } = actions;
-			const url = 'http://example.com';
-
-			goBackToWpAdmin( url )( spy );
-
-			expect( spy ).toHaveBeenCalledWith( {
-				type: JETPACK_CONNECT_REDIRECT_WP_ADMIN,
-			} );
-		} );
-	} );
-
-	describe( '#goToXmlrpcErrorFallbackUrl()', () => {
-		test( 'should dispatch redirect with xmlrpc error action when called', () => {
-			const spy = jest.fn();
-			const { goToXmlrpcErrorFallbackUrl } = actions;
-			const queryObject = {
-				state: '12345678',
-				redirect_uri: 'https://example.com/',
-				authorizeError: {},
-			};
-			const authorizationCode = 'abcdefgh';
-			const url =
-				queryObject.redirect_uri + '?code=' + authorizationCode + '&state=' + queryObject.state;
-
-			goToXmlrpcErrorFallbackUrl( queryObject, authorizationCode )( spy );
-
-			expect( spy ).toHaveBeenCalledWith( {
-				type: JETPACK_CONNECT_REDIRECT_XMLRPC_ERROR_FALLBACK_URL,
-				url,
 			} );
 		} );
 	} );

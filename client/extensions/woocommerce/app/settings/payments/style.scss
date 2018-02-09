@@ -1,9 +1,12 @@
 &.payments__dialog {
-	max-width: 660px;
+	@include breakpoint( ">660px" ) {
+		width: 660px;
+	}
 
 	.dialog__content {
-		height: 100%;
-		overflow-y: scroll;
+		.form-fieldset:last-child {
+			margin-bottom: 0;
+		}
 	}
 
 	.dialog__action-buttons {
@@ -233,7 +236,7 @@
 .payments__method-loading-feelink,
 .payments__method-loading-enabled,
 .payments__method-loading-settings {
-	background-color: lighten( $gray, 30% );
+	background-color: $gray-lighten-30;
 	animation: loading-fade 1.6s ease-in-out infinite;
 }
 

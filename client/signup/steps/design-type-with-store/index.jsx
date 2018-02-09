@@ -1,9 +1,7 @@
 /** @format */
-
 /**
  * External dependencies
  */
-
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import classNames from 'classnames';
@@ -156,6 +154,7 @@ class DesignTypeWithStoreStep extends Component {
 						{ ...this.props }
 						onBackClick={ this.handleStoreBackClick }
 						setRef={ this.setPressableStore }
+						isVisible={ this.state.showStore }
 					/>
 				</div>
 				<div className={ designTypeListClassName }>

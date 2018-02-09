@@ -16,12 +16,15 @@ import url from 'url';
 import accessibleFocus from 'lib/accessible-focus';
 import { bindState as bindWpLocaleState } from 'lib/wp/localization';
 import config from 'config';
-import { receiveUser } from 'state/users/actions';
-import { setCurrentUserId, setCurrentUserFlags } from 'state/current-user/actions';
 import { setRoute as setRouteAction } from 'state/ui/actions';
-import touchDetect from 'lib/touch-detect';
+import { hasTouch } from 'lib/touch-detect';
 import { setLocale, setLocaleRawData } from 'state/ui/language/actions';
-import getCurrentLocaleSlug from 'state/selectors/get-current-locale-slug';
+import { setCurrentUserOnReduxStore } from 'lib/redux-helpers';
+import { installPerfmonPageHandlers } from 'lib/perfmon';
+import { getSections, setupRoutes } from 'sections-middleware';
+import { checkFormHandler } from 'lib/protect-form';
+import notices from 'notices';
+import authController from 'auth/controller';
 
 const debug = debugFactory( 'calypso' );
 
@@ -75,7 +78,7 @@ const setupContextMiddleware = reduxStore => {
 };
 
 // We need to require sections to load React with i18n mixin
-const loadSectionsMiddleware = () => require( 'sections' ).load();
+const loadSectionsMiddleware = () => setupRoutes();
 
 const loggedOutMiddleware = currentUser => {
 	if ( currentUser.get() ) {
@@ -96,8 +99,7 @@ const loggedOutMiddleware = currentUser => {
 		} );
 	}
 
-	const sections = require( 'sections' );
-	const validSections = sections.get().reduce( ( acc, section ) => {
+	const validSections = getSections().reduce( ( acc, section ) => {
 		return section.enableLoggedOut ? acc.concat( section.paths ) : acc;
 	}, [] );
 	const isValidSection = sectionPath =>
@@ -113,7 +115,7 @@ const loggedOutMiddleware = currentUser => {
 const oauthTokenMiddleware = () => {
 	if ( config.isEnabled( 'oauth' ) ) {
 		// Forces OAuth users to the /login page if no token is present
-		page( '*', require( 'auth/controller' ).checkToken );
+		page( '*', authController.checkToken );
 	}
 };
 
@@ -127,12 +129,12 @@ const setRouteMiddleware = () => {
 
 const clearNoticesMiddleware = () => {
 	//TODO: remove this one when notices are reduxified - it is for old notices
-	page( '*', require( 'notices' ).clearNoticesOnNavigation );
+	page( '*', notices.clearNoticesOnNavigation );
 };
 
 const unsavedFormsMiddleware = () => {
 	// warn against navigating from changed, unsaved forms
-	page.exit( '*', require( 'lib/protect-form' ).checkFormHandler );
+	page.exit( '*', checkFormHandler );
 };
 
 export const locales = ( currentUser, reduxStore ) => {
@@ -143,9 +145,9 @@ export const locales = ( currentUser, reduxStore ) => {
 		reduxStore.dispatch( setLocaleRawData( i18nLocaleStringsObject ) );
 	}
 
-	// Use current user's locale if it was not bootstrapped
+	// Use current user's locale if it was not bootstrapped (non-ssr pages)
 	if (
-		! getCurrentLocaleSlug( reduxStore.getState() ) &&
+		! window.i18nLocaleStrings &&
 		! config.isEnabled( 'wpcom-user-bootstrap' ) &&
 		currentUser.get()
 	) {
@@ -157,12 +159,12 @@ export const utils = () => {
 	debug( 'Executing Calypso utils.' );
 
 	if ( process.env.NODE_ENV === 'development' ) {
-		require( './dev-modules' )();
+		require( './dev-modules' ).default();
 	}
 
 	// Infer touch screen by checking if device supports touch events
 	// See touch-detect/README.md
-	if ( touchDetect.hasTouch() ) {
+	if ( hasTouch() ) {
 		document.documentElement.classList.add( 'touch' );
 	} else {
 		document.documentElement.classList.add( 'notouch' );
@@ -179,12 +181,10 @@ export const configureReduxStore = ( currentUser, reduxStore ) => {
 
 	if ( currentUser.get() ) {
 		// Set current user in Redux store
-		reduxStore.dispatch( receiveUser( currentUser.get() ) );
+		setCurrentUserOnReduxStore( currentUser.get(), reduxStore );
 		currentUser.on( 'change', () => {
-			reduxStore.dispatch( receiveUser( currentUser.get() ) );
+			setCurrentUserOnReduxStore( currentUser.get(), reduxStore );
 		} );
-		reduxStore.dispatch( setCurrentUserId( currentUser.get().ID ) );
-		reduxStore.dispatch( setCurrentUserFlags( currentUser.get().meta.data.flags.active_flags ) );
 	}
 
 	if ( config.isEnabled( 'network-connection' ) ) {
@@ -197,6 +197,7 @@ export const configureReduxStore = ( currentUser, reduxStore ) => {
 export const setupMiddlewares = ( currentUser, reduxStore ) => {
 	debug( 'Executing Calypso setup middlewares.' );
 
+	installPerfmonPageHandlers();
 	setupContextMiddleware( reduxStore );
 	oauthTokenMiddleware();
 	loadSectionsMiddleware();

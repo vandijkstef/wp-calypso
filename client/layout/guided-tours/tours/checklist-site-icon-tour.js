@@ -35,10 +35,7 @@ export const ChecklistSiteIconTour = makeTour(
 		>
 			<p>
 				{ translate(
-					'Press {{b}}Change{{/b}} to upload an image or icon that helps people identify your site in the browser.',
-					{
-						components: { b: <strong /> },
-					}
+					'Press this graphic to upload your own image or icon that can help people identify your site in the browser.'
 				) }
 			</p>
 			<ButtonRow>
@@ -54,6 +51,10 @@ export const ChecklistSiteIconTour = makeTour(
 			target="media-library-upload-more"
 			placement="beside"
 			arrow="left-top"
+			style={ {
+				marginTop: '-10px',
+				marginLeft: '-40px',
+			} }
 		>
 			<p>
 				{ translate( 'Pick or drag a file from your computer to add it to your media library.' ) }
@@ -66,6 +67,7 @@ export const ChecklistSiteIconTour = makeTour(
 			target="dialog-base-action-confirm"
 			arrow="bottom-center"
 			placement="above"
+			style={ { marginTop: '40px', marginLeft: '60px' } }
 		>
 			<Continue target="dialog-base-action-confirm" step="click-done" click>
 				{ translate( 'Good choice, press {{b}}Continue{{/b}} to use it as your Site Icon.', {
@@ -79,10 +81,11 @@ export const ChecklistSiteIconTour = makeTour(
 			target="image-editor-button-done"
 			arrow="bottom-center"
 			placement="above"
+			style={ { marginTop: '30px', marginLeft: '90px' } }
 		>
-			<Continue target="image_editor_button_done" step="finish" click>
+			<Continue target="image-editor-button-done" step="finish" click>
 				{ translate(
-					"Let's make sure it looks right before you press {{b}}Done{{/b}} to save your changes.",
+					'Let’s make sure it looks right before you press {{b}}Done{{/b}} to save your changes.',
 					{ components: { b: <strong /> } }
 				) }
 			</Continue>
@@ -93,11 +96,11 @@ export const ChecklistSiteIconTour = makeTour(
 				<span className="tours__completed-icon-wrapper">
 					<Gridicon icon="checkmark" className="tours__completed-icon" />
 				</span>
-				{ translate( "Excellent, you're done!" ) }
+				{ translate( 'Excellent, you’re done!' ) }
 			</h1>
 			<p>
 				{ translate(
-					"Your Site Icon has been saved. Let's move on and see what's next on our checklist."
+					'Your Site Icon has been saved. Let’s move on and see what’s next on our checklist.'
 				) }
 			</p>
 			<SiteLink isButton href={ '/checklist/:site' }>
