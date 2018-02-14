@@ -84,4 +84,13 @@ export default {
 		defaultVariation: 'group_0',
 		allowExistingUsers: true,
 	},
+	siteGoalsShuffle: {
+		datestamp: '20180214',
+		variations: {
+			control: 50,
+			variant: 50,
+		},
+		defaultVariation: 'control',
+		allowExistingUsers: true,
+	},
 };
