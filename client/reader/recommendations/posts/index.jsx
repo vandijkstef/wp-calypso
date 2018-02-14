@@ -13,7 +13,7 @@ import EmptyContent from './empty';
 import DocumentHead from 'components/data/document-head';
 
 const title = translate( 'Recommended Posts' );
-const documentTitle = translate( '%s ‹ Reader', { args: this.title } );
+const documentTitle = translate( '%s ‹ Reader', { args: title } );
 
 class RecommendationPostsStream extends React.Component {
 	render() {

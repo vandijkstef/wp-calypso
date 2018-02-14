@@ -13,10 +13,9 @@ import EmptyContent from './empty';
 import DocumentHead from 'components/data/document-head';
 
 const title = translate( 'My Likes' );
-const documentTitle = translate( '%s ‹ Reader', { args: this.title } );
+const documentTitle = translate( '%s ‹ Reader', { args: title } );
 
 class LikedStream extends React.Component {
-
 	render() {
 		const emptyContent = <EmptyContent />;
 		return (

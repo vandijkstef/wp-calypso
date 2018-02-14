@@ -58,7 +58,8 @@ class ListStream extends React.Component {
 		const list = this.props.list,
 			shouldShowFollow = list && ! list.is_owner,
 			shouldShowEdit = ! shouldShowFollow,
-			emptyContent = <EmptyContent />;
+			emptyContent = <EmptyContent />,
+			listStreamIconClasses = 'gridicon gridicon__list';
 
 		let editUrl = null;
 
@@ -85,14 +86,18 @@ class ListStream extends React.Component {
 					isPlaceholder={ ! list }
 					icon={
 						<svg
-							className="gridicon gridicon__list"
+							className={ listStreamIconClasses }
 							height="32"
 							width="32"
 							xmlns="http://www.w3.org/2000/svg"
 							viewBox="0 0 24 24"
 						>
 							<g>
-								<path d="M9 19h10v-2H9v2zm0-6h10v-2H9v2zm0-8v2h10V5H9zm-3-.5c-.828 0-1.5.672-1.5 1.5S5.172 7.5 6 7.5 7.5 6.828 7.5 6 6.828 4.5 6 4.5zm0 6c-.828 0-1.5.672-1.5 1.5s.672 1.5 1.5 1.5 1.5-.672 1.5-1.5-.672-1.5-1.5-1.5zm0 6c-.828 0-1.5.672-1.5 1.5s.672 1.5 1.5 1.5 1.5-.672 1.5-1.5-.672-1.5-1.5-1.5z" />
+								<path d="M9 19h10v-2H9v2zm0-6h10v-2H9v2zm0-8v2h10V5H9zm-3-.5c-.828
+									0-1.5.672-1.5 1.5S5.172 7.5 6 7.5 7.5 6.828 7.5 6 6.828 4.5 6
+									4.5zm0 6c-.828 0-1.5.672-1.5 1.5s.672 1.5 1.5 1.5 1.5-.672
+									1.5-1.5-.672-1.5-1.5-1.5zm0 6c-.828 0-1.5.672-1.5 1.5s.672 1.5
+									1.5 1.5 1.5-.672 1.5-1.5-.672-1.5-1.5-1.5z" />
 							</g>
 						</svg>
 					}
