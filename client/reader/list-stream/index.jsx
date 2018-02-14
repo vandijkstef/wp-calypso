@@ -25,6 +25,10 @@ import QueryReaderList from 'components/data/query-reader-list';
 import { recordAction, recordGaEvent, recordTrack } from 'reader/stats';
 
 class ListStream extends React.Component {
+	constructor( props ) {
+		super( props );
+		this.title = props.translate( 'Loading list' );
+	}
 	toggleFollowing = isFollowRequested => {
 		const list = this.props.list;
 
@@ -56,11 +60,10 @@ class ListStream extends React.Component {
 			shouldShowEdit = ! shouldShowFollow,
 			emptyContent = <EmptyContent />;
 
-		let editUrl = null,
-			title = this.props.translate( 'Loading list' );
+		let editUrl = null;
 
 		if ( list ) {
-			title = list.title;
+			this.title = list.title;
 
 			editUrl = `https://wordpress.com/read/list/${ list.owner }/${ list.slug }/edit`;
 		}
@@ -72,11 +75,11 @@ class ListStream extends React.Component {
 		return (
 			<Stream
 				{ ...this.props }
-				listName={ title }
+				listName={ this.title }
 				emptyContent={ emptyContent }
 				showFollowInHeader={ shouldShowFollow }
 			>
-				<DocumentHead title={ this.props.translate( '%s ‹ Reader', { args: title } ) } />
+				<DocumentHead title={ this.props.translate( '%s ‹ Reader', { args: this.title } ) } />
 				<QueryReaderList owner={ this.props.owner } slug={ this.props.slug } />
 				<ListStreamHeader
 					isPlaceholder={ ! list }
@@ -93,7 +96,7 @@ class ListStream extends React.Component {
 							</g>
 						</svg>
 					}
-					title={ title }
+					title={ this.title }
 					description={ list && list.description }
 					showFollow={ shouldShowFollow }
 					following={ this.props.isSubscribed }

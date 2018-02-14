@@ -35,11 +35,14 @@ class FeedStream extends React.Component {
 		showBack: true,
 		className: 'is-site-stream',
 	};
-
+	constructor( props ) {
+		super( props );
+		this.title = props.translate( 'Loading Feed' );
+	}
 	render() {
 		const { feed, site, siteId } = this.props;
 		const emptyContent = <EmptyContent />;
-		const title = getSiteName( { feed, site } ) || this.props.translate( 'Loading Feed' );
+		const title = getSiteName( { feed, site } ) || this.title;
 
 		if ( ( feed && feed.is_error ) || ( site && site.is_error ) ) {
 			return <FeedError sidebarTitle={ title } />;
