@@ -64,7 +64,7 @@ class ShippingLabels extends Component {
 					</FormLabel>
 					<FormSelect />
 				</FormFieldSet>
-				<FormFieldSet>
+				<FormFieldSet className="label-settings__payments">
 					<FormLabel className="label-settings__cards-label">
 						<span />
 					</FormLabel>
@@ -193,16 +193,19 @@ class ShippingLabels extends Component {
 			buttonLabel = translate( 'Add a credit card' );
 		}
 
-		const renderPaymentMethod = ( method, index ) => {
+		const renderPaymentMethod = method => {
 			const onSelect = () => onPaymentMethodChange( method.payment_method_id );
 			return (
 				<PaymentMethod
-					key={ index }
+					key={ method.payment_method_id }
+					id={ method.payment_method_id }
+					card={ {
+						card_type: method.card_type,
+						card: method.card_digits,
+						name: method.name,
+						expiry: method.expiry,
+					} }
 					selected={ selectedPaymentMethod === method.payment_method_id }
-					type={ method.card_type }
-					name={ method.name }
-					digits={ method.card_digits }
-					expiry={ method.expiry }
 					onSelect={ onSelect }
 				/>
 			);
@@ -213,7 +216,7 @@ class ShippingLabels extends Component {
 		};
 
 		return (
-			<div>
+			<div className="label-settings__payments">
 				{ this.renderPaymentPermissionNotice() }
 				<p className="label-settings__credit-card-description">{ description }</p>
 
