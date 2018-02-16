@@ -21,7 +21,9 @@ import observe from 'lib/mixins/data-observe';
 /* eslint-enable no-restricted-imports */
 import GlobalNotices from 'components/global-notices';
 import notices from 'notices';
+import translator from 'lib/translator-jumpstart';
 import TranslatorInvitation from './community-translator/invitation';
+import TranslatorLauncher from './community-translator/launcher';
 import Welcome from 'my-sites/welcome/welcome';
 import WelcomeMessage from 'layout/nux-welcome/welcome-message';
 import GuidedTours from 'layout/guided-tours';
@@ -181,10 +183,14 @@ const Layout = createReactClass( {
 						{ this.props.secondary }
 					</div>
 				</div>
-				{ config.isEnabled( 'i18n/community-translator' ) &&
-					isCommunityTranslatorEnabled() && (
-						<AsyncLoad require="components/community-translator" />
-					) }
+				{ config.isEnabled( 'i18n/community-translator' ) && isCommunityTranslatorEnabled() ? (
+					<AsyncLoad require="components/community-translator" />
+				) : (
+					<TranslatorLauncher
+						isEnabled={ translator.isEnabled() }
+						isActive={ translator.isActivated() }
+					/>
+				) }
 				{ this.renderPreview() }
 				{ config.isEnabled( 'happychat' ) &&
 					this.props.chatIsOpen && <AsyncLoad require="components/happychat" /> }
