@@ -114,6 +114,7 @@ export function getCacheKey( { cacheQueryKeys, pathname, query } ) {
 			every( cacheQueryKeys, key => has( query, key ) )
 		) {
 			// Make a stable string representation
+			// @TODO: qs too old for sort param (added 5.2.0, fixed 6.1.0)
 			return pathname + '?' + qs.stringify( query, { sort: ( a, b ) => a.localCompare( b ) } );
 		}
 		return null;
