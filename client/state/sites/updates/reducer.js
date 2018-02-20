@@ -4,7 +4,7 @@
  * External dependencies
  */
 
-import { isEmpty, merge, stubFalse, stubTrue } from 'lodash';
+import { isEmpty, stubFalse, stubTrue } from 'lodash';
 
 /**
  * Internal dependencies
@@ -17,8 +17,6 @@ import {
 	SITE_UPDATES_REQUEST,
 	SITE_UPDATES_REQUEST_SUCCESS,
 	SITE_UPDATES_REQUEST_FAILURE,
-	SITE_WORDPRESS_UPDATE_REQUEST_SUCCESS,
-	SITE_WORDPRESS_UPDATE_REQUEST_FAILURE,
 	SITE_PLUGIN_UPDATED,
 } from 'state/action-types';
 
@@ -46,18 +44,6 @@ export const items = createReducer(
 		} ),
 		[ SITE_RECEIVE ]: ( state, { site } ) => receiveUpdatesForSites( state, [ site ] ),
 		[ SITES_RECEIVE ]: ( state, { sites } ) => receiveUpdatesForSites( state, sites ),
-		[ SITE_WORDPRESS_UPDATE_REQUEST_SUCCESS ]: ( state, { siteId } ) => {
-			if ( ! state[ siteId ] ) {
-				return state;
-			}
-
-			return merge( {}, state, {
-				[ siteId ]: {
-					wordpress: state[ siteId ].wordpress - 1,
-					total: state[ siteId ].total - 1,
-				},
-			} );
-		},
 		[ SITE_PLUGIN_UPDATED ]: ( state, { siteId } ) => {
 			const siteUpdates = state[ siteId ];
 			if ( ! siteUpdates ) {
@@ -86,14 +72,6 @@ export const requesting = keyedReducer(
 	} )
 );
 
-export const wordpressUpdateStatus = keyedReducer(
-	'siteId',
-	createReducer( undefined, {
-		[ SITE_WORDPRESS_UPDATE_REQUEST_SUCCESS ]: stubTrue,
-		[ SITE_WORDPRESS_UPDATE_REQUEST_FAILURE ]: stubFalse,
-	} )
-);
-
 export const errors = keyedReducer(
 	'siteId',
 	createReducer( undefined, {
@@ -106,6 +84,5 @@ export const errors = keyedReducer(
 export default combineReducers( {
 	items,
 	requesting,
-	wordpressUpdateStatus,
 	errors,
 } );

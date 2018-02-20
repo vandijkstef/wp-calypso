@@ -9,7 +9,7 @@ import deepFreeze from 'deep-freeze';
 /**
  * Internal dependencies
  */
-import reducer, { items, requesting, wordpressUpdateStatus, errors } from '../reducer';
+import reducer, { items, requesting, errors } from '../reducer';
 import {
 	SITE_RECEIVE,
 	SITES_RECEIVE,
@@ -17,8 +17,6 @@ import {
 	SITE_UPDATES_REQUEST,
 	SITE_UPDATES_REQUEST_SUCCESS,
 	SITE_UPDATES_REQUEST_FAILURE,
-	SITE_WORDPRESS_UPDATE_REQUEST_SUCCESS,
-	SITE_WORDPRESS_UPDATE_REQUEST_FAILURE,
 	SITE_PLUGIN_UPDATED,
 	SERIALIZE,
 	DESERIALIZE,
@@ -31,12 +29,7 @@ describe( 'reducer', () => {
 	} );
 
 	test( 'should export expected reducer keys', () => {
-		expect( reducer( undefined, {} ) ).to.have.keys( [
-			'items',
-			'requesting',
-			'wordpressUpdateStatus',
-			'errors',
-		] );
+		expect( reducer( undefined, {} ) ).to.have.keys( [ 'items', 'requesting', 'errors' ] );
 	} );
 
 	describe( '#items()', () => {
@@ -210,34 +203,6 @@ describe( 'reducer', () => {
 			expect( state ).to.eql( {} );
 		} );
 
-		test( 'should reduce wordpress and total updates count after successful wordpress update', () => {
-			const original = deepFreeze( {
-				2916284: {
-					plugins: 1,
-					themes: 1,
-					total: 4,
-					translations: 1,
-					wordpress: 1,
-				},
-				77203074: exampleUpdates,
-			} );
-			const state = items( original, {
-				type: SITE_WORDPRESS_UPDATE_REQUEST_SUCCESS,
-				siteId: 2916284,
-			} );
-
-			expect( state ).to.eql( {
-				2916284: {
-					plugins: 1,
-					themes: 1,
-					total: 3,
-					translations: 1,
-					wordpress: 0,
-				},
-				77203074: exampleUpdates,
-			} );
-		} );
-
 		test( 'should reduce plugins and total updates count after successful plugin update', () => {
 			const original = deepFreeze( {
 				2916284: {
@@ -355,44 +320,6 @@ describe( 'reducer', () => {
 
 			expect( state ).to.eql( {
 				2916284: false,
-				77203074: false,
-			} );
-		} );
-	} );
-
-	describe( 'wordpressUpdateStatus()', () => {
-		test( 'should default to an empty object', () => {
-			const state = wordpressUpdateStatus( undefined, {} );
-
-			expect( state ).to.eql( {} );
-		} );
-
-		test( 'should track site wordpress core update status request succeeded', () => {
-			const original = deepFreeze( {
-				77203074: true,
-			} );
-			const state = wordpressUpdateStatus( original, {
-				type: SITE_WORDPRESS_UPDATE_REQUEST_SUCCESS,
-				siteId: 2916284,
-			} );
-
-			expect( state ).to.eql( {
-				2916284: true,
-				77203074: true,
-			} );
-		} );
-
-		test( 'should track site wordpress core update status request failed', () => {
-			const original = deepFreeze( {
-				2916284: true,
-			} );
-			const state = wordpressUpdateStatus( original, {
-				type: SITE_WORDPRESS_UPDATE_REQUEST_FAILURE,
-				siteId: 77203074,
-			} );
-
-			expect( state ).to.eql( {
-				2916284: true,
 				77203074: false,
 			} );
 		} );
