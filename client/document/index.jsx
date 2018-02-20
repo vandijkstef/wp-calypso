@@ -13,7 +13,7 @@ import { get } from 'lodash';
  */
 import { jsonStringifyForHtml } from '../../server/sanitize';
 import Head from '../components/head';
-import EnvironmentBadge from '../components/environment-badge';
+import EnvironmentBadge, { TestHelper, Branch, DevDocsLink } from '../components/environment-badge';
 import getStylesheet from './utils/stylesheet';
 
 class Document extends React.Component {
@@ -111,15 +111,13 @@ class Document extends React.Component {
 						</div>
 					) }
 					{ badge && (
-						<EnvironmentBadge
-							abTestHelper={ abTestHelper }
-							branchName={ branchName }
-							commitChecksum={ commitChecksum }
-							devDocs={ devDocs }
-							devDocsURL={ devDocsURL }
-							badge={ badge }
-							feedbackURL={ feedbackURL }
-						/>
+						<EnvironmentBadge badge={ badge } feedbackURL={ feedbackURL }>
+							{ abTestHelper && <TestHelper /> }
+							{ branchName && (
+								<Branch branchName={ branchName } commitChecksum={ commitChecksum } />
+							) }
+							{ devDocs && <DevDocsLink url={ devDocsURL } /> }
+						</EnvironmentBadge>
 					) }
 
 					<script
