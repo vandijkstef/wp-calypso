@@ -2,9 +2,8 @@
 /**
  * External dependencies
  */
-
+import deterministicStringify from 'json-stable-stringify';
 import { every, has, isEmpty } from 'lodash';
-import qs from 'qs';
 
 /**
  * Internal dependencies
@@ -113,9 +112,7 @@ export function getCacheKey( { cacheQueryKeys, pathname, query } ) {
 			Object.keys( query ).length === cacheQueryKeys.length &&
 			every( cacheQueryKeys, key => has( query, key ) )
 		) {
-			// Make a stable string representation
-			// @TODO: qs too old for sort param (added 5.2.0, fixed 6.1.0)
-			return pathname + '?' + qs.stringify( query, { sort: ( a, b ) => a.localCompare( b ) } );
+			return pathname + '?' + deterministicStringify( query );
 		}
 		return null;
 	}
