@@ -246,6 +246,11 @@ function setUpLoggedInRoute( req, res, next ) {
 
 	req.context = getDefaultContext( req );
 
+	// @TODO don't merge this (!), only for testing purposes
+	if ( 'development' === process.env.NODE_ENV && req.query.login ) {
+		req.context.isLoggedIn = true;
+	}
+
 	if ( config.isEnabled( 'wpcom-user-bootstrap' ) ) {
 		const user = require( 'user-bootstrap' );
 
