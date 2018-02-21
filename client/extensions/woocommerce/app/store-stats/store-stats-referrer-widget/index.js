@@ -16,8 +16,7 @@ import { getSiteStatsNormalizedData } from 'state/stats/lists/selectors';
 import Table from 'woocommerce/components/table';
 import TableRow from 'woocommerce/components/table/table-row';
 import TableItem from 'woocommerce/components/table/table-item';
-// import D3Bar from 'woocommerce/components/d3-horizontal-bar';
-import D3Bar from 'woocommerce/components/d3/base';
+import HorizontalBar from 'woocommerce/components/d3/horizontal-bar';
 
 class StoreStatsReferrerWidget extends Component {
 	static propTypes = {
@@ -59,7 +58,7 @@ class StoreStatsReferrerWidget extends Component {
 						<TableRow key={ key }>
 							<TableItem>{ key }</TableItem>
 							<TableItem>
-								<D3Bar data={ category.gross_sales } maxValue={ 100 } />
+								<HorizontalBar data={ category.gross_sales } />
 							</TableItem>
 						</TableRow>
 					);
