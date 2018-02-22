@@ -94,7 +94,7 @@ class InlineHelp extends Component {
 				title={ translate( 'Help' ) }
 				ref={ this.inlineHelpToggleRef }
 			>
-				<Gridicon icon="help-outline" />
+				<Gridicon icon="help-outline" size={ 32 } />
 				<Popover
 					isVisible={ this.state.showInlineHelp }
 					onClose={ this.closeInlineHelp }
@@ -119,6 +119,7 @@ const mapStateToProps = ( state, ownProps ) => ( {
 	searchQuery: getSearchQuery( state ),
 	searchResults: getInlineHelpSearchResultsForQuery( state, ownProps.searchQuery ),
 } );
+
 const mapDispatchToProps = {
 	recordTracksEvent,
 };
