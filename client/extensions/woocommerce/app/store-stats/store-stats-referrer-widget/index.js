@@ -8,6 +8,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { find } from 'lodash';
+import { extent as d3Extent } from 'd3-array';
 
 /**
  * Internal dependencies
@@ -29,7 +30,8 @@ class StoreStatsReferrerWidget extends Component {
 
 	render() {
 		const { data, selectedDate } = this.props;
-		const selectedData = find( data, d => d.date === selectedDate );
+		const selectedData = find( data, d => d.date === selectedDate ) || [];
+		const extent = d3Extent( selectedData.data.map( d => d.sales ) );
 		const header = (
 			<TableRow isHeader>
 				<TableItem isHeader>Source</TableItem>
@@ -43,7 +45,7 @@ class StoreStatsReferrerWidget extends Component {
 						<TableRow key={ d.referrer }>
 							<TableItem>{ d.referrer }</TableItem>
 							<TableItem>
-								<HorizontalBar data={ d.sales } />
+								<HorizontalBar extent={ extent } data={ d.sales } />
 							</TableItem>
 						</TableRow>
 					);
