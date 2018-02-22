@@ -121,7 +121,7 @@ class StoreStats extends Component {
 								siteId={ siteId }
 								query={ query }
 								statType="statsStoreReferrers"
-								selectedDate={ endSelectedDate }
+								selectedDate={ unitSelectedDate }
 							/>
 						</Module>
 					</div>

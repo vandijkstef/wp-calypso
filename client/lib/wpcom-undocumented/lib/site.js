@@ -326,19 +326,14 @@ UndocumentedSite.prototype.statsOrders = function( query ) {
  * @param {object} query query parameters
  * @return {Promise} A Promise to resolve when complete.
  */
-import refData from 'extensions/woocommerce/app/store-stats/refDummyData';
-UndocumentedSite.prototype.statsStoreReferrers = function() {
-	// return this.wpcom.req.get(
-	// 	{
-	// 		path: `/sites/${ this._id }/stats/store-referrers`,
-	// 		apiNamespace: 'wpcom/v2',
-	// 	},
-	// 	query
-	// );
-
-	return new Promise( resolve => {
-		resolve( refData );
-	} );
+UndocumentedSite.prototype.statsStoreReferrers = function( query ) {
+	return this.wpcom.req.get(
+		{
+			path: `/sites/${ this._id }/stats/events-by-referrer`,
+			apiNamespace: 'wpcom/v2',
+		},
+		query
+	);
 };
 
 /**

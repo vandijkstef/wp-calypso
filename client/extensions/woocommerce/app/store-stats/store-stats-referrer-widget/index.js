@@ -27,23 +27,9 @@ class StoreStatsReferrerWidget extends Component {
 		selectedDate: PropTypes.string.isRequired,
 	};
 
-	categorize( data ) {
-		const initialValue = [ 'social', 'email', 'organic', 'search', 'other' ].reduce( ( obj, c ) => {
-			obj[ c ] = {
-				gross_sales: 0,
-			};
-			return obj;
-		}, {} );
-		return data.reduce( ( result, d ) => {
-			result[ d.category ].gross_sales += d.gross_sales;
-			return result;
-		}, initialValue );
-	}
-
 	render() {
 		const { data, selectedDate } = this.props;
 		const selectedData = find( data, d => d.date === selectedDate );
-		const categorizedData = this.categorize( selectedData.data );
 		const header = (
 			<TableRow isHeader>
 				<TableItem isHeader>Source</TableItem>
@@ -52,13 +38,12 @@ class StoreStatsReferrerWidget extends Component {
 		);
 		return (
 			<Table header={ header } compact>
-				{ Object.keys( categorizedData ).map( key => {
-					const category = categorizedData[ key ];
+				{ selectedData.data.map( d => {
 					return (
-						<TableRow key={ key }>
-							<TableItem>{ key }</TableItem>
+						<TableRow key={ d.referrer }>
+							<TableItem>{ d.referrer }</TableItem>
 							<TableItem>
-								<HorizontalBar data={ category.gross_sales } />
+								<HorizontalBar data={ d.sales } />
 							</TableItem>
 						</TableRow>
 					);
