@@ -257,7 +257,7 @@ export class EditorGroundControl extends PureComponent {
 					compact
 					site={ this.props.site }
 					onSelect={ this.props.recordSiteButtonClick }
-					indicator={ true }
+					indicator={ false }
 				/>
 				<Drafts />
 				{ this.state.needsVerification && (
