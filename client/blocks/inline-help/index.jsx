@@ -98,7 +98,7 @@ class InlineHelp extends Component {
 				<Popover
 					isVisible={ this.state.showInlineHelp }
 					onClose={ this.closeInlineHelp }
-					position="top right"
+					position="top left"
 					context={ this.inlineHelpToggle }
 					className="inline-help__popover"
 				>
