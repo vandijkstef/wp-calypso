@@ -105,8 +105,18 @@ class InlineHelp extends Component {
 					<div className="inline-help__heading">
 						<InlineHelpSearchCard query={ this.props.searchQuery } />
 						<InlineHelpSearchResults searchQuery={ this.props.searchQuery } />
-						<Button onClick={ this.moreHelpClicked } className="inline-help__button" borderless href="/help">
+						<Button
+							onClick={ this.moreHelpClicked }
+							className="inline-help__more-button"
+							borderless
+							href="/help">
 							<Gridicon icon="help" /> { translate( 'More help' ) }
+						</Button>
+						<Button
+							className="inline-help__support-button"
+							borderless
+						>
+							<Gridicon icon="chat" /> { translate( 'Live chat' ) }
 						</Button>
 					</div>
 				</Popover>
