@@ -9,9 +9,14 @@ import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import D3Base from 'woocommerce/components/d3/base';
 import { scaleLinear as d3ScaleLinear } from 'd3-scale';
-import { identity } from 'lodash';
 
-const HorizontalBar = ( { className, data, extent, margin, format } ) => {
+/**
+ * Internal dependencies
+ */
+import { formatValue } from 'woocommerce/app/store-stats/utils';
+
+const HorizontalBar = ( { className, data, extent, margin, currency } ) => {
+	const numberFormat = currency ? 'currency' : 'number';
 	const drawChart = ( svg, { scale, height } ) => {
 		svg
 			.append( 'rect' )
@@ -27,7 +32,7 @@ const HorizontalBar = ( { className, data, extent, margin, format } ) => {
 			.attr( 'y', height / 2 )
 			.attr( 'text-anchor', 'end' )
 			.attr( 'fill', 'white' )
-			.text( format( data ) );
+			.text( formatValue( data, numberFormat, currency ) );
 
 		const textWidth = text.node().getComputedTextLength();
 
@@ -65,7 +70,7 @@ HorizontalBar.propTypes = {
 	className: PropTypes.string,
 	data: PropTypes.number.isRequired,
 	extent: PropTypes.arrayOf( PropTypes.number ).isRequired,
-	format: PropTypes.func,
+	currency: PropTypes.string,
 };
 
 HorizontalBar.defaultProps = {
@@ -75,7 +80,6 @@ HorizontalBar.defaultProps = {
 		bottom: 4,
 		left: 4,
 	},
-	format: identity,
 };
 
 export default HorizontalBar;

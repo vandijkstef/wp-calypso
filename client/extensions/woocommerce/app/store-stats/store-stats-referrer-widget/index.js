@@ -45,7 +45,8 @@ class StoreStatsReferrerWidget extends Component {
 						<TableRow key={ d.referrer }>
 							<TableItem>{ d.referrer }</TableItem>
 							<TableItem>
-								<HorizontalBar extent={ extent } data={ d.sales } />
+								{ /* currency="NZD" For now */ }
+								<HorizontalBar extent={ extent } data={ d.sales } currency="NZD" />
 							</TableItem>
 						</TableRow>
 					);
