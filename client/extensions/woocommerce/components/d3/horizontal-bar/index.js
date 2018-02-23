@@ -5,15 +5,13 @@
  */
 
 import React from 'react';
-// import PropTypes from 'prop-types';
-// import { extent as d3Extent } from 'd3-array';
-// import { scaleLinear as d3ScaleLinear } from 'd3-scale';
-// import { line as d3Line } from 'd3-shape';
+import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import D3Base from 'woocommerce/components/d3/base';
 import { scaleLinear as d3ScaleLinear } from 'd3-scale';
+import { identity } from 'lodash';
 
-const HorizontalBar = ( { className, data, extent, margin } ) => {
+const HorizontalBar = ( { className, data, extent, margin, format } ) => {
 	const drawChart = ( svg, { scale, height } ) => {
 		svg
 			.append( 'rect' )
@@ -29,7 +27,7 @@ const HorizontalBar = ( { className, data, extent, margin } ) => {
 			.attr( 'y', height / 2 )
 			.attr( 'text-anchor', 'end' )
 			.attr( 'fill', 'white' )
-			.text( data );
+			.text( format( data ) );
 
 		const textWidth = text.node().getComputedTextLength();
 
@@ -45,7 +43,7 @@ const HorizontalBar = ( { className, data, extent, margin } ) => {
 		height: 20,
 		scale: d3ScaleLinear()
 			.domain( extent )
-			.range( [ margin.left, node.offsetWidth - margin.right ] ),
+			.range( [ 0, node.offsetWidth - margin.right ] ),
 	} );
 
 	return (
@@ -57,13 +55,27 @@ const HorizontalBar = ( { className, data, extent, margin } ) => {
 	);
 };
 
+HorizontalBar.propTypes = {
+	margin: PropTypes.shape( {
+		top: PropTypes.number,
+		right: PropTypes.number,
+		bottom: PropTypes.number,
+		left: PropTypes.number,
+	} ),
+	className: PropTypes.string,
+	data: PropTypes.number.isRequired,
+	extent: PropTypes.arrayOf( PropTypes.number ).isRequired,
+	format: PropTypes.func,
+};
+
 HorizontalBar.defaultProps = {
 	margin: {
 		top: 4,
 		right: 4,
 		bottom: 4,
-		left: 0,
+		left: 4,
 	},
+	format: identity,
 };
 
 export default HorizontalBar;
