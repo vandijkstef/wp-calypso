@@ -6608,13 +6608,6 @@
         "lodash.assign": {
           "version": "4.2.0",
           "integrity": "sha1-DZnzzNem0mHRm9rrkkUAXShYCOc="
-        },
-        "moment-timezone": {
-          "version": "0.5.11",
-          "integrity": "sha1-m3bAPY71FMfkJJp7vOZJ7tOe8p8=",
-          "requires": {
-            "moment": "2.19.2"
-          }
         }
       }
     },
@@ -9684,8 +9677,8 @@
       "integrity": "sha512-Rf6jiHPEfxp9+dlzxPTmRHbvoFXsh2L/U8hOupUMpnuecHQmI6cF6lUbJl3QqKPko1u6ujO+FxtcajLVfLpAtA=="
     },
     "moment-timezone": {
-      "version": "0.5.14",
-      "integrity": "sha1-TrOP+VOLgBCLpGekWPPtQmjM/LE=",
+      "version": "0.5.11",
+      "integrity": "sha1-m3bAPY71FMfkJJp7vOZJ7tOe8p8=",
       "requires": {
         "moment": "2.19.2"
       }
