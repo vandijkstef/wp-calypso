@@ -14,28 +14,28 @@ import D3Base from 'woocommerce/components/d3/base';
 import { scaleLinear as d3ScaleLinear } from 'd3-scale';
 
 const HorizontalBar = ( { className, data, extent, margin } ) => {
-	const drawChart = ( svg, { scale, width, height } ) => {
-		svg.append( 'rect' )
+	const drawChart = ( svg, { scale, height } ) => {
+		svg
+			.append( 'rect' )
 			.attr( 'x', 0 )
 			.attr( 'y', 0 )
 			.attr( 'width', scale( data ) )
 			.attr( 'height', 12 )
-			.attr( 'fill', 'pink' );
+			.attr( 'fill', 'blue' );
 
-		const text = svg.append( 'text' )
+		const text = svg
+			.append( 'text' )
 			.attr( 'x', scale( data ) )
-			.attr( 'y', height / 2)
-			.text( data );  // @TODO format value
+			.attr( 'y', height / 2 )
+			.attr( 'text-anchor', 'end' )
+			.attr( 'fill', 'white' )
+			.text( data );
 
 		const textWidth = text.node().getComputedTextLength();
 
-		function willTextOverlap( rectWidth, textWidth ) {
-			return rectWidth - textWidth <= 0;
+		if ( scale( data ) - textWidth <= 0 ) {
+			text.attr( 'fill', 'black' ).attr( 'text-anchor', 'start' );
 		}
-
-		const offsetText = scale( data ) - textWidth <= 0;
-
-		console.log( data, offsetText );
 
 		return svg;
 	};

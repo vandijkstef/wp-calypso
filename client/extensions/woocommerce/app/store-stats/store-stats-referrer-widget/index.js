@@ -8,7 +8,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { find } from 'lodash';
-import { extent as d3Extent } from 'd3-array';
+import { max as d3Max } from 'd3-array';
 
 /**
  * Internal dependencies
@@ -31,7 +31,7 @@ class StoreStatsReferrerWidget extends Component {
 	render() {
 		const { data, selectedDate } = this.props;
 		const selectedData = find( data, d => d.date === selectedDate ) || [];
-		const extent = d3Extent( selectedData.data.map( d => d.sales ) );
+		const extent = [ 0, d3Max( selectedData.data.map( d => d.sales ) ) ];
 		const header = (
 			<TableRow isHeader>
 				<TableItem isHeader>Source</TableItem>
