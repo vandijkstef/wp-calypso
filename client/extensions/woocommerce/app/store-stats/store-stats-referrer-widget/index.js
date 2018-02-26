@@ -34,19 +34,21 @@ class StoreStatsReferrerWidget extends Component {
 		const extent = [ 0, d3Max( selectedData.data.map( d => d.sales ) ) ];
 		const header = (
 			<TableRow isHeader>
-				<TableItem isHeader>Source</TableItem>
+				<TableItem isHeader isTitle>
+					Source
+				</TableItem>
 				<TableItem isHeader>Gross Sales</TableItem>
 			</TableRow>
 		);
 		return (
-			<Table header={ header } compact>
+			<Table className="store-stats-referrer-widget" header={ header } compact>
 				{ selectedData.data.map( d => {
 					return (
 						<TableRow key={ d.referrer }>
-							<TableItem>{ d.referrer }</TableItem>
+							<TableItem isTitle>{ d.referrer }</TableItem>
 							<TableItem>
 								{ /* currency="NZD" For now */ }
-								<HorizontalBar extent={ extent } data={ d.sales } currency="NZD" />
+								<HorizontalBar extent={ extent } data={ d.sales } currency="NZD" height={ 20 } />
 							</TableItem>
 						</TableRow>
 					);

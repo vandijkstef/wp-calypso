@@ -15,37 +15,40 @@ import { scaleLinear as d3ScaleLinear } from 'd3-scale';
  */
 import { formatValue } from 'woocommerce/app/store-stats/utils';
 
-const HorizontalBar = ( { className, data, extent, margin, currency } ) => {
+const HorizontalBar = ( { className, data, extent, margin, currency, height, width } ) => {
 	const numberFormat = currency ? 'currency' : 'number';
 	const drawChart = ( svg, { scale, height } ) => {
+		const xPos = scale( data );
 		svg
 			.append( 'rect' )
 			.attr( 'x', 0 )
 			.attr( 'y', 0 )
-			.attr( 'width', scale( data ) )
-			.attr( 'height', 12 )
-			.attr( 'fill', 'blue' );
+			.attr( 'width', xPos )
+			.attr( 'height', height );
 
 		const text = svg
 			.append( 'text' )
-			.attr( 'x', scale( data ) )
-			.attr( 'y', height / 2 )
+			// Render text offscreen to aquire its length
+			.attr( 'x', -9999 )
+			.attr( 'y', -9999 )
 			.attr( 'text-anchor', 'end' )
 			.attr( 'fill', 'white' )
 			.text( formatValue( data, numberFormat, currency ) );
 
-		const textWidth = text.node().getComputedTextLength();
+		const isOffsetText = xPos - ( text.node().getComputedTextLength() + 5 ) <= 0;
 
-		if ( scale( data ) - textWidth <= 0 ) {
-			text.attr( 'fill', 'black' ).attr( 'text-anchor', 'start' );
-		}
+		text
+			.attr( 'class', isOffsetText ? 'is-offset-text' : '' )
+			.attr( 'text-anchor', isOffsetText ? 'start' : 'end' )
+			.attr( 'x', isOffsetText ? xPos + 5 : xPos - 5 )
+			.attr( 'y', height / 2 + margin.top );
 
 		return svg;
 	};
 
 	const getParams = node => ( {
-		width: node.offsetWidth,
-		height: 20,
+		width: width || node.offsetWidth,
+		height: height || node.offsetHeight,
 		scale: d3ScaleLinear()
 			.domain( extent )
 			.range( [ 0, node.offsetWidth - margin.right ] ),
@@ -61,16 +64,18 @@ const HorizontalBar = ( { className, data, extent, margin, currency } ) => {
 };
 
 HorizontalBar.propTypes = {
+	className: PropTypes.string,
+	currency: PropTypes.string,
+	data: PropTypes.number.isRequired,
+	extent: PropTypes.arrayOf( PropTypes.number ).isRequired,
+	height: PropTypes.number,
 	margin: PropTypes.shape( {
 		top: PropTypes.number,
 		right: PropTypes.number,
 		bottom: PropTypes.number,
 		left: PropTypes.number,
 	} ),
-	className: PropTypes.string,
-	data: PropTypes.number.isRequired,
-	extent: PropTypes.arrayOf( PropTypes.number ).isRequired,
-	currency: PropTypes.string,
+	width: PropTypes.number,
 };
 
 HorizontalBar.defaultProps = {
