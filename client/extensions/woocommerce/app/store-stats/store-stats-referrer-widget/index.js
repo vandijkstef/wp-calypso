@@ -28,15 +28,11 @@ class StoreStatsReferrerWidget extends Component {
 		selectedDate: PropTypes.string.isRequired,
 	};
 
-	sortAndTrim( selectedData ) {
-		return sortBy( selectedData, d => -d.sales ).slice( 0, 5 );
-	}
-
 	render() {
 		const { data, selectedDate } = this.props;
 		const selectedData = find( data, d => d.date === selectedDate ) || { data: [] };
-		const sortedAndTrimmed = this.sortAndTrim( selectedData.data, d => d.sales );
-		const extent = [ 0, d3Max( sortedAndTrimmed.map( d => d.sales ) ) ];
+		const sortedAndTrimmedData = sortBy( selectedData.data, d => -d.sales ).slice( 0, 5 );
+		const extent = [ 0, d3Max( sortedAndTrimmedData.map( d => d.sales ) ) ];
 		const header = (
 			<TableRow isHeader>
 				<TableItem isHeader isTitle>
@@ -47,13 +43,17 @@ class StoreStatsReferrerWidget extends Component {
 		);
 		return (
 			<Table className="store-stats-referrer-widget" header={ header } compact>
-				{ sortedAndTrimmed.map( d => {
+				{ sortedAndTrimmedData.map( d => {
 					return (
 						<TableRow key={ d.referrer }>
 							<TableItem isTitle>{ d.referrer }</TableItem>
 							<TableItem>
-								{ /* currency="NZD" For now */ }
-								<HorizontalBar extent={ extent } data={ d.sales } currency="NZD" height={ 20 } />
+								<HorizontalBar
+									extent={ extent }
+									data={ d.sales }
+									currency={ data.currency }
+									height={ 20 }
+								/>
 							</TableItem>
 						</TableRow>
 					);
