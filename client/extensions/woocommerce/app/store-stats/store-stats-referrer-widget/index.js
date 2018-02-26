@@ -7,7 +7,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { find } from 'lodash';
+import { find, sortBy } from 'lodash';
 import { max as d3Max } from 'd3-array';
 
 /**
@@ -28,10 +28,15 @@ class StoreStatsReferrerWidget extends Component {
 		selectedDate: PropTypes.string.isRequired,
 	};
 
+	sortAndTrim( selectedData ) {
+		return sortBy( selectedData, d => -d.sales ).slice( 0, 5 );
+	}
+
 	render() {
 		const { data, selectedDate } = this.props;
-		const selectedData = find( data, d => d.date === selectedDate ) || [];
-		const extent = [ 0, d3Max( selectedData.data.map( d => d.sales ) ) ];
+		const selectedData = find( data, d => d.date === selectedDate ) || { data: [] };
+		const sortedAndTrimmed = this.sortAndTrim( selectedData.data, d => d.sales );
+		const extent = [ 0, d3Max( sortedAndTrimmed.map( d => d.sales ) ) ];
 		const header = (
 			<TableRow isHeader>
 				<TableItem isHeader isTitle>
@@ -42,7 +47,7 @@ class StoreStatsReferrerWidget extends Component {
 		);
 		return (
 			<Table className="store-stats-referrer-widget" header={ header } compact>
-				{ selectedData.data.map( d => {
+				{ sortedAndTrimmed.map( d => {
 					return (
 						<TableRow key={ d.referrer }>
 							<TableItem isTitle>{ d.referrer }</TableItem>
