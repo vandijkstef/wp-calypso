@@ -95,7 +95,6 @@ class SelectBusinessType extends Component {
 					buttonText={ translate( 'Optimize Your SEO', { comment: 'Call to Action button' } ) }
 					buttonIcon="external"
 					buttonHref={ '/settings/traffic/' + siteId }
-					buttonTarget="_blank"
 					buttonOnClick={ this.trackOptimizeYourSEOClick }
 				/>
 			</div>
