@@ -61,6 +61,8 @@
 
 .google-my-business__stats-nudge-image-wrapper {
 	display: none;
+	height: 300px;
+	width: 362px;
 	@include breakpoint( ">960px" ) {
 		display: block;
 		margin-right: 24px;
