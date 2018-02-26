@@ -25,11 +25,15 @@ class SelectBusinessType extends Component {
 	};
 
 	trackCreateMyListingClick = () => {
-		this.props.recordTracksEvent( 'calypso_test_google_my_business_select_business_type_create_my_listing_button_click' );
+		this.props.recordTracksEvent(
+			'calypso_test_google_my_business_select_business_type_create_my_listing_button_click'
+		);
 	};
 
 	trackOptimizeYourSEOClick = () => {
-		this.props.recordTracksEvent( 'calypso_test_google_my_business_select_business_type_optimize_your_seo_button_click' );
+		this.props.recordTracksEvent(
+			'calypso_test_google_my_business_select_business_type_optimize_your_seo_button_click'
+		);
 	};
 
 	goBack = () => {
@@ -52,7 +56,7 @@ class SelectBusinessType extends Component {
 						<h2>
 							{ translate(
 								'Google My Business lists your local business on Google Search and Google Maps. ' +
-								'It works for businesses that have a physical location or serve a local area.'
+									'It works for businesses that have a physical location or serve a local area.'
 							) }
 						</h2>
 					</div>
@@ -69,15 +73,13 @@ class SelectBusinessType extends Component {
 					} ) }
 					mainText={ translate(
 						'My business has a physical location customers can visit, ' +
-						'or provides goods and services to local customers, or both.'
+							'or provides goods and services to local customers, or both.'
 					) }
 					buttonText={ translate( 'Create My Listing', {
 						comment: 'Call to Action to add a business listing to Google My Business',
 					} ) }
-					buttonIcon="external"
 					buttonPrimary={ true }
-					buttonHref="https://www.google.com/business/"
-					buttonTarget="_blank"
+					buttonHref={ '/google-my-business/connect/' + siteId }
 					buttonOnClick={ this.trackCreateMyListingClick }
 				/>
 
