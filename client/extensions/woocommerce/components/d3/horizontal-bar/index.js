@@ -17,14 +17,14 @@ import { formatValue } from 'woocommerce/app/store-stats/utils';
 
 const HorizontalBar = ( { className, data, extent, margin, currency, height, width } ) => {
 	const numberFormat = currency ? 'currency' : 'number';
-	const drawChart = ( svg, { scale, height } ) => {
+	const drawChart = ( svg, { scale, height: calculatedHeight } ) => {
 		const xPos = scale( data );
 		svg
 			.append( 'rect' )
 			.attr( 'x', 0 )
 			.attr( 'y', 0 )
 			.attr( 'width', xPos )
-			.attr( 'height', height );
+			.attr( 'height', calculatedHeight );
 
 		const text = svg
 			.append( 'text' )
@@ -41,7 +41,7 @@ const HorizontalBar = ( { className, data, extent, margin, currency, height, wid
 			.attr( 'class', isOffsetText ? 'is-offset-text' : '' )
 			.attr( 'text-anchor', isOffsetText ? 'start' : 'end' )
 			.attr( 'x', isOffsetText ? xPos + 5 : xPos - 5 )
-			.attr( 'y', height / 2 + margin.top );
+			.attr( 'y', calculatedHeight / 2 + margin.top );
 
 		return svg;
 	};
