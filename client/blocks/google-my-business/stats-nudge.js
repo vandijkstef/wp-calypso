@@ -56,12 +56,12 @@ class GoogleMyBusinessStatsNudge extends Component {
 
 					<div className="google-my-business__stats-nudge-info">
 						<h1 className="google-my-business__stats-nudge-title">
-							{ this.props.translate( 'Reach more customers with Google My Business' ) }
+							{ this.props.translate( 'Can your customers find you on Google?' ) }
 						</h1>
 
 						<h2 className="google-my-business__stats-nudge-description">
 							{ this.props.translate(
-								'Show up when customers search for businesses like yours on Google Search and Maps.'
+								'Be there when customers search businesses like yours on Google Search and Maps.'
 							) }
 						</h2>
 
@@ -74,9 +74,7 @@ class GoogleMyBusinessStatsNudge extends Component {
 								{ this.props.translate( 'Start Now' ) }
 							</Button>
 
-							<Button
-								onClick={ this.props.trackNudgeAlreadyListedClick }
-							>
+							<Button onClick={ this.props.trackNudgeAlreadyListedClick }>
 								{ this.props.translate( "I'm Already Listed" ) }
 							</Button>
 						</div>
@@ -88,8 +86,7 @@ class GoogleMyBusinessStatsNudge extends Component {
 }
 
 export default connect( () => ( {} ), {
-	trackNudgeView: () =>
-		recordTracksEvent( 'calypso_test_google_my_business_stats_nudge_view' ),
+	trackNudgeView: () => recordTracksEvent( 'calypso_test_google_my_business_stats_nudge_view' ),
 	trackNudgeDismissClick: () =>
 		recordTracksEvent( 'calypso_test_google_my_business_stats_nudge_dismiss_icon_click' ),
 	trackNudgeStartNowClick: () =>
