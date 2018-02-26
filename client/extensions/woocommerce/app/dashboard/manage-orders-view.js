@@ -34,6 +34,7 @@ import ProcessOrdersWidget from 'woocommerce/components/process-orders-widget';
 import ShareWidget from 'woocommerce/components/share-widget';
 import Card from 'components/card';
 import QuerySettingsGeneral from 'woocommerce/components/query-settings-general';
+import StatsWidget from './widgets/stats-widget';
 
 class ManageOrdersView extends Component {
 	static propTypes = {
@@ -155,6 +156,8 @@ class ManageOrdersView extends Component {
 				</div>
 
 				<LabelsSetupNotice />
+
+				<StatsWidget />
 
 				<div className="dashboard__queue-widgets">
 					{ this.possiblyRenderProcessOrdersWidget() }
